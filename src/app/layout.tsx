@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 
@@ -28,6 +28,13 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Notion personal",
   description: "Workspace personal de notas, documentos y bases de datos.",
+};
+
+// BlockNote (móvil): el teclado virtual redimensiona el contenido.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

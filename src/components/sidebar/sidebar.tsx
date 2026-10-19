@@ -205,6 +205,7 @@ export function SidebarContent({ initialRoot, initialFavorites, workspaceName }:
             variant="ghost"
             size="sm"
             className="justify-start gap-2"
+            nativeButton={false}
             render={<Link href="/trash" />}
           >
             <Trash2 className="size-4" />
@@ -214,6 +215,7 @@ export function SidebarContent({ initialRoot, initialFavorites, workspaceName }:
             variant="ghost"
             size="icon-sm"
             aria-label="Ajustes"
+            nativeButton={false}
             render={<Link href="/settings" />}
           >
             <Settings />

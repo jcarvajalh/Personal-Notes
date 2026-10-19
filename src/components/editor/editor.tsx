@@ -141,6 +141,11 @@ export function Editor({ pageId, initialContent, initialVersion }: EditorProps) 
     timerRef.current = setTimeout(() => void save(false), SAVE_DEBOUNCE_MS);
   }, [editor, pageId, save, setStatus]);
 
+  // Suscripción a TODOS los cambios del documento (incluye inserciones
+  // programáticas como las menciones del menú, que no disparan el onChange de
+  // BlockNoteView). Devuelve su propio cleanup.
+  useEffect(() => editor.onChange(handleChange), [editor, handleChange]);
+
   // Canal entre pestañas para detectar ediciones concurrentes.
   useEffect(() => {
     const bc = new BroadcastChannel(`np.page.${pageId}`);
@@ -206,7 +211,10 @@ export function Editor({ pageId, initialContent, initialVersion }: EditorProps) 
             aliases: ["callout", "nota", "aviso", "destacado"],
             group: "Básicos",
             icon: <Info className="size-4" />,
-            onItemClick: () => insertOrUpdateBlockForSlashMenu(editor, { type: "callout" }),
+            onItemClick: () => {
+              insertOrUpdateBlockForSlashMenu(editor, { type: "callout" });
+              handleChange();
+            },
           },
           {
             title: "Enlace a página",
@@ -214,12 +222,15 @@ export function Editor({ pageId, initialContent, initialVersion }: EditorProps) 
             aliases: ["enlace", "link", "pagina", "página"],
             group: "Básicos",
             icon: <FileText className="size-4" />,
-            onItemClick: () => insertOrUpdateBlockForSlashMenu(editor, { type: "pageLink" }),
+            onItemClick: () => {
+              insertOrUpdateBlockForSlashMenu(editor, { type: "pageLink" });
+              handleChange();
+            },
           },
         ],
         query,
       ),
-    [editor],
+    [editor, handleChange],
   );
 
   const mentionItems = useCallback(
@@ -227,11 +238,14 @@ export function Editor({ pageId, initialContent, initialVersion }: EditorProps) 
       const results = await searchPages(query);
       const items: DefaultReactSuggestionItem[] = results.map((r) => ({
         title: r.title || "Sin título",
-        onItemClick: () =>
+        onItemClick: () => {
           editor.insertInlineContent([
             { type: "pageMention", props: { pageId: r.id, title: r.title || "Sin título" } },
             " ",
-          ]),
+          ]);
+          // La inserción programática no dispara onChange: forzar el guardado.
+          handleChange();
+        },
       }));
       if (query.trim().length > 0) {
         items.push({
@@ -243,6 +257,7 @@ export function Editor({ pageId, initialContent, initialVersion }: EditorProps) 
                 { type: "pageMention", props: { pageId: res.data.id, title: query.trim() } },
                 " ",
               ]);
+              handleChange();
               qc.invalidateQueries({ queryKey: pageKeys.all });
             }
           },
@@ -250,7 +265,7 @@ export function Editor({ pageId, initialContent, initialVersion }: EditorProps) 
       }
       return items;
     },
-    [editor, qc],
+    [editor, qc, handleChange],
   );
 
   return (
@@ -258,7 +273,6 @@ export function Editor({ pageId, initialContent, initialVersion }: EditorProps) 
       <BlockNoteView
         editor={editor}
         theme={resolvedTheme === "dark" ? "dark" : "light"}
-        onChange={handleChange}
         slashMenu={false}
       >
         <SuggestionMenuController triggerCharacter="/" getItems={slashItems} />
