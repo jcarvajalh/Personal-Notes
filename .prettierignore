@@ -1,0 +1,12 @@
+.next
+node_modules
+drizzle
+pnpm-lock.yaml
+package-lock.json
+public
+docs/Notion_Personal_Especificacion.docx
+docs/spec
+next-env.d.ts
+coverage
+playwright-report
+test-results
