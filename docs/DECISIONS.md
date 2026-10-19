@@ -95,3 +95,63 @@ es intensamente dinámica (sesión y datos por usuario) y usa renderizado dinám
 convencional. Además, en Next 16 el convenio `middleware.ts` está deprecado a favor
 de `proxy.ts` (función `proxy`); se adoptó el nuevo nombre. La lógica de protección
 de rutas (AU-004) es idéntica.
+
+## DEC-013 · 2026-10-18 · Fase 1: fuente de requisitos de seguridad y mapeo SEC-*
+
+El prompt de la Fase 1 referencia `docs/spec/12-seguridad.md` e IDs `SEC-*` que **no
+existen** en el repo (la spec llega a `11-licencias.md`). Se acuerda con el dueño usar
+la **sección 8.2** de `09-no-funcionales-ui-api.md` como contrato de seguridad, con el
+mapeo: SEC-006→AU-005/006 (passkeys y 2FA), SEC-040/041→subidas de archivos,
+SEC-090→tests de seguridad, SEC-091→revisión manual del código nuevo.
+
+## DEC-014 · 2026-10-18 · Librerías nuevas de la Fase 1
+
+Se añaden (con su justificación): **@blocknote/core/react/mantine** + **shiki**
+(editor y resaltado, 1B); **@tanstack/react-query** (datos de servidor en cliente,
+updates optimistas, estado de guardado); **zustand** (estado de UI: sidebar, diálogos,
+guardado); **@dnd-kit/core+sortable+utilities** (arrastrar y soltar del sidebar,
+NV-003); **fractional-indexing** (orden con índice fraccionario, 6.1);
+**next-themes** (tema claro/oscuro/sistema sin parpadeo, SE-001); **sonner** (toasts
+con "Deshacer"; Base UI no trae toast); **frimousse** (selector de emojis para el
+icono de página, PG-002); **cmdk** (paleta Ctrl/Cmd+K, SR-001). Pendientes para 1B/1C:
+**@aws-sdk/client-s3** + **@aws-sdk/s3-request-presigner** (Neon Object Storage,
+S3-compatible), **file-type** (validar magic bytes en subidas), **qrcode** (QR de TOTP),
+**otpauth** (códigos TOTP en los E2E).
+
+## DEC-015 · 2026-10-18 · Almacenamiento de archivos: Neon Object Storage (S3-compatible)
+
+Entre Neon Object Storage, Vercel Blob y Cloudflare R2 (sección 3) se elige **Neon
+Object Storage**: 5 GB incluidos y mismo proveedor que la BD. Es S3-compatible, por lo
+que la integración (1B) usará el SDK de AWS S3 con URL firmada, validando tipo MIME y
+tamaño (máx. 50 MB, 8.2) y usando nombres aleatorios en el bucket. Credenciales en
+variables `STORAGE_*`.
+
+## DEC-016 · 2026-10-18 · BlockNote variante Mantine
+
+Se usa **@blocknote/mantine** (no `@blocknote/shadcn`) porque el shadcn del proyecto
+está sobre **Base UI** (base-nova, DEC-005), cuyas APIs no coinciden con las que espera
+el adaptador shadcn de BlockNote. La variante Mantine es autocontenida y se tematiza con
+los tokens de diseño propios (1B).
+
+## DEC-017 · 2026-10-18 · Tablas auxiliares de la Fase 1 (migración 0002)
+
+Se crean `page_versions`, `page_visits`, `files` y `backlinks` (6.5–6.7) en
+`drizzle/0002_*.sql`. `backlinks` se puebla al guardar (flujo 4.3) aunque el panel
+(PG-015) sea de la Fase 4. Las tablas de los plugins passkey/two_factor (6.4) se
+añadirán en la migración del bloque 1C.
+
+## DEC-018 · 2026-10-18 · Regla eslint `react-hooks/refs` desactivada en archivos de dnd-kit
+
+`eslint-plugin-react-hooks` v6 marca como error leer `isOver` o pasar `setNodeRef` de
+los hooks de **@dnd-kit** (los confunde con refs accedidos en render). Es el uso
+idiomático de la librería, así que se desactiva `react-hooks/refs` **solo** en
+`sidebar.tsx` y `tree-node.tsx` con comentario. El resto de reglas de hooks siguen como
+error; los `set-state-in-effect` se corrigieron de raíz (useSyncExternalStore y
+remontaje por `key`).
+
+## DEC-019 · 2026-10-18 · Tokens de diseño e identidad propia
+
+Los tokens viven en un único lugar (`src/app/globals.css`): marca (`--brand*`),
+resaltado de búsqueda (`--highlight*`) y medidas de layout (`--sidebar-width`,
+`--content-max-width`, `--topbar-height`), además de la tipografía (DEC-012). El acento
+de marca es un índigo propio (no la paleta de Notion).
