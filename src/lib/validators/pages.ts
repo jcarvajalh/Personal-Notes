@@ -46,6 +46,14 @@ export const toggleFavoriteSchema = z.object({
   favorite: z.boolean(),
 });
 
+// Guardado del contenido del editor (flujo 4.3).
+export const savePageContentSchema = z.object({
+  pageId: z.uuid(),
+  content: z.array(z.unknown()),
+  baseVersion: z.number().int().nonnegative(),
+  snapshot: z.boolean().optional().default(false),
+});
+
 // Reordenar dentro de Favoritos (soltar entre dos elementos).
 export const reorderFavoriteSchema = z.object({
   id: z.uuid(),

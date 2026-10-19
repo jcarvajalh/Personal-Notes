@@ -10,10 +10,12 @@ import {
   movePageSchema,
   pageIdSchema,
   renamePageSchema,
+  savePageContentSchema,
   setPageIconSchema,
   toggleFavoriteSchema,
 } from "@/lib/validators/pages";
 import * as pageService from "@/server/services/pages";
+import { savePageContent, type SaveContentResult } from "@/server/services/page-content";
 import {
   getBreadcrumbs,
   getChildPages,
@@ -197,6 +199,22 @@ export async function toggleFavoriteAction(input: {
     await pageService.setFavorite(ctx, parsed.id, parsed.favorite);
     revalidatePath("/", "layout");
     return undefined;
+  });
+}
+
+export async function savePageContentAction(input: {
+  pageId: string;
+  content: unknown[];
+  baseVersion: number;
+  snapshot?: boolean;
+}): Promise<ActionResult<SaveContentResult>> {
+  return run(async () => {
+    const ctx = await requireUser();
+    const parsed = savePageContentSchema.parse(input);
+    const result = await savePageContent(ctx, parsed);
+    // El contenido se guarda en cliente (optimista); no revalidamos la ruta para
+    // no re-renderizar el editor en cada guardado. El sidebar se refresca aparte.
+    return result;
   });
 }
 
