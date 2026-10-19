@@ -24,7 +24,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
     <main className="flex flex-1 items-center justify-center p-6">
       <div className="w-full max-w-sm space-y-6">
         <div className="space-y-1 text-center">
-          <h1 className="text-2xl font-medium">Notion personal</h1>
+          <h1 className="text-2xl font-medium">Blocktion</h1>
           <p className="text-muted-foreground text-sm">Inicia sesión para continuar.</p>
         </div>
         <LoginForm redirectTo={redirectTo} />

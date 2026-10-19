@@ -2,6 +2,7 @@ import { BlockNoteSchema, defaultBlockSpecs, defaultInlineContentSpecs } from "@
 
 import { Callout } from "@/components/editor/blocks/callout";
 import { PageLink } from "@/components/editor/blocks/page-link";
+import { DatabaseBlock } from "@/components/editor/blocks/database-block";
 import { PageMention } from "@/components/editor/inline/page-mention";
 
 // Esquema del editor (BlockNote): bloques nativos P0 (párrafo, encabezados,
@@ -13,6 +14,7 @@ export const editorSchema = BlockNoteSchema.create({
     // createReactBlockSpec devuelve una factory en BlockNote 0.56: se invoca.
     callout: Callout(),
     pageLink: PageLink(),
+    databaseView: DatabaseBlock(),
   },
   inlineContentSpecs: {
     ...defaultInlineContentSpecs,

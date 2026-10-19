@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { useTheme } from "next-themes";
-import { FilePlus, Moon, Settings, Sun, Trash2 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Database, FilePlus, Moon, Settings, Sun, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+
+import { useTheme } from "@/components/theme-provider";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
@@ -17,8 +19,10 @@ import {
 } from "@/components/ui/command";
 import { PageIcon } from "@/components/page-icon";
 import { useDialogsStore } from "@/stores/dialogs";
-import { usePageMutations, useRecents } from "@/hooks/use-pages";
+import { pageKeys, usePageMutations, useRecents } from "@/hooks/use-pages";
 import { searchContent, searchPages } from "@/server/actions/pages";
+import { createDatabaseAction } from "@/server/actions/databases";
+import { OFFERED_VIEW_TYPES, VIEW_LABELS } from "@/lib/database/types";
 import { splitHighlights } from "@/lib/search";
 
 export function CommandPalette() {
@@ -27,6 +31,17 @@ export function CommandPalette() {
   const router = useRouter();
   const { setTheme } = useTheme();
   const { create } = usePageMutations();
+  const qc = useQueryClient();
+
+  const newDatabase = async (viewType: string) => {
+    const res = await createDatabaseAction({ viewType });
+    if (res.ok) {
+      qc.invalidateQueries({ queryKey: pageKeys.all });
+      router.push(`/${res.data.pageId}`);
+    } else {
+      toast.error(res.error);
+    }
+  };
 
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
@@ -165,6 +180,19 @@ export function CommandPalette() {
                 <Moon />
                 Tema oscuro
               </CommandItem>
+            </CommandGroup>
+
+            <CommandGroup heading="Base de datos">
+              {OFFERED_VIEW_TYPES.map((vt) => (
+                <CommandItem
+                  key={vt}
+                  value={`base de datos vista ${VIEW_LABELS[vt]}`}
+                  onSelect={() => run(() => void newDatabase(vt))}
+                >
+                  <Database />
+                  Vista de {(VIEW_LABELS[vt] ?? vt).toLowerCase()}
+                </CommandItem>
+              ))}
             </CommandGroup>
           </CommandList>
         </Command>

@@ -151,6 +151,22 @@
     /* Cuerpo / párrafos: interletraje -2%. */
     letter-spacing: -0.02em;
   }
+  /* Cursor "manito" en todo lo clicable (botones, menús, enlaces, pestañas).
+     Los textos editables conservan su cursor de texto (palito) por defecto. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="menuitem"],
+  [role="menuitemcheckbox"],
+  [role="menuitemradio"],
+  [role="option"],
+  [role="tab"],
+  [role="switch"],
+  summary,
+  label[for],
+  select,
+  a[href] {
+    cursor: pointer;
+  }
   html {
     @apply font-sans;
   }
@@ -164,4 +180,14 @@
     font-weight: 500;
     letter-spacing: -0.04em;
   }
+}
+
+/* Editor BlockNote: quitar el fondo tipo "card gris" del área de contenido para
+   que el editor se funda con el fondo de la página (va fuera de @layer base para
+   ganar al CSS de @blocknote/mantine). */
+.bn-container,
+.bn-editor,
+.bn-container .bn-editor {
+  background-color: transparent;
+  --bn-colors-editor-background: transparent;
 }

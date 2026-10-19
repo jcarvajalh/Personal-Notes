@@ -43,6 +43,24 @@ export const workspaces = pgTable("workspaces", {
   updatedAt: timestamp("updated_at", tz).notNull().defaultNow(),
 });
 
+// --- page_groups (organización personalizada del sidebar) --------------------
+// Grupos definidos por el usuario para agrupar páginas raíz en el sidebar,
+// además de la sección "Páginas" por defecto (sin grupo).
+export const pageGroups = pgTable(
+  "page_groups",
+  {
+    id: uuid("id").primaryKey().$defaultFn(uuidv7),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    name: text("name").notNull().default(""),
+    position: text("position").notNull(),
+    createdAt: timestamp("created_at", tz).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", tz).notNull().defaultNow(),
+  },
+  (t) => [index("page_groups_ws_idx").on(t.workspaceId, t.position)],
+);
+
 // --- pages (6.5) --------------------------------------------------------------
 // Nota: database_id referencia databases.id (ON DELETE CASCADE), pero la tabla
 // `databases` pertenece a la Fase 2. En la Fase 0 la columna existe sin la FK;
@@ -58,12 +76,17 @@ export const pages = pgTable(
     parentId: uuid("parent_id").references((): AnyPgColumn => pages.id, {
       onDelete: "set null",
     }),
+    // Grupo del sidebar (solo aplica a páginas raíz). null = sección "Páginas".
+    groupId: uuid("group_id").references(() => pageGroups.id, { onDelete: "set null" }),
     databaseId: uuid("database_id"),
     position: text("position").notNull(),
     title: text("title").notNull().default(""),
     icon: jsonb("icon"),
     cover: jsonb("cover"),
     content: jsonb("content").notNull().default([]),
+    // Tarjetas flotantes movibles del lienzo de la página (extensión propia, no
+    // en la spec 6.5): [{ id, x, y, width, height, content: Bloque[] }].
+    cards: jsonb("cards").notNull().default([]),
     contentText: text("content_text").notNull().default(""),
     properties: jsonb("properties").notNull().default({}),
     computed: jsonb("computed").notNull().default({}),

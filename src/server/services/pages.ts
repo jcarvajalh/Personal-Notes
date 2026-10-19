@@ -3,7 +3,7 @@ import "server-only";
 import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 
 import { db } from "@/server/db";
-import { pages, pageVisits } from "@/server/db/schema";
+import { pageGroups, pages, pageVisits } from "@/server/db/schema";
 import { positionBetween } from "@/lib/positions";
 import type { AuthContext } from "@/server/session";
 import type { PageIcon } from "@/lib/validators/pages";
@@ -341,6 +341,72 @@ export async function setFavorite(ctx: AuthContext, id: string, favorite: boolea
     .update(pages)
     .set({ isFavorite: true, favoritePosition, updatedAt: new Date() })
     .where(and(eq(pages.id, id), eq(pages.workspaceId, ctx.workspaceId)));
+}
+
+// =============================== Grupos ======================================
+
+/** Crea un grupo del sidebar al final de la lista. */
+export async function createGroup(ctx: AuthContext, name: string) {
+  const [last] = await db
+    .select({ position: pageGroups.position })
+    .from(pageGroups)
+    .where(eq(pageGroups.workspaceId, ctx.workspaceId))
+    .orderBy(desc(pageGroups.position))
+    .limit(1);
+  const position = positionBetween(last?.position ?? null, null);
+  const [group] = await db
+    .insert(pageGroups)
+    .values({ workspaceId: ctx.workspaceId, name, position })
+    .returning({ id: pageGroups.id });
+  return group;
+}
+
+/** Renombra un grupo. */
+export async function renameGroup(ctx: AuthContext, id: string, name: string) {
+  await db
+    .update(pageGroups)
+    .set({ name, updatedAt: new Date() })
+    .where(and(eq(pageGroups.id, id), eq(pageGroups.workspaceId, ctx.workspaceId)));
+}
+
+/** Elimina un grupo. Las páginas vuelven a la sección "Páginas" (group_id = null). */
+export async function deleteGroup(ctx: AuthContext, id: string) {
+  await db
+    .delete(pageGroups)
+    .where(and(eq(pageGroups.id, id), eq(pageGroups.workspaceId, ctx.workspaceId)));
+}
+
+/**
+ * Asigna páginas a un grupo (o las saca, con groupId = null). Al asignarlas las
+ * promueve a raíz dentro del grupo (como hace Notion al mover una página a una
+ * sección del sidebar).
+ */
+export async function assignPagesToGroup(ctx: AuthContext, ids: string[], groupId: string | null) {
+  if (groupId) {
+    const [group] = await db
+      .select({ id: pageGroups.id })
+      .from(pageGroups)
+      .where(and(eq(pageGroups.id, groupId), eq(pageGroups.workspaceId, ctx.workspaceId)))
+      .limit(1);
+    if (!group) throw new Error("El grupo no existe");
+  }
+  await db.transaction(async (tx) => {
+    for (const id of ids) {
+      const position = await endPosition(tx, ctx.workspaceId, null);
+      await tx
+        .update(pages)
+        .set({ groupId, parentId: null, position, updatedAt: new Date() })
+        .where(and(eq(pages.id, id), eq(pages.workspaceId, ctx.workspaceId)));
+    }
+  });
+}
+
+/** Guarda las tarjetas flotantes del lienzo de la página. */
+export async function setPageCards(ctx: AuthContext, pageId: string, cards: unknown[]) {
+  await db
+    .update(pages)
+    .set({ cards, updatedAt: new Date() })
+    .where(and(eq(pages.id, pageId), eq(pages.workspaceId, ctx.workspaceId)));
 }
 
 /** NV-009: registra una visita a la página (para "Recientes"). */

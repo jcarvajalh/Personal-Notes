@@ -42,6 +42,9 @@ export const viewType = pgEnum("view_type", [
   "chart",
   "map",
   "feed",
+  // "dashboard" (panel de control) no está en la spec 6.3 pero lo pide el dueño
+  // (vista "Nuevo" de Notion). Ver DECISIONS.
+  "dashboard",
 ]);
 
 export const backlinkKind = pgEnum("backlink_kind", ["mention", "link", "embed", "synced"]);

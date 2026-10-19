@@ -122,9 +122,9 @@ IDs y detalles en `docs/spec/05-func-editor-paginas.md`, `06-func-bases-de-datos
 
 | ID     | Funcionalidad                               | Prio | Estado    |
 | ------ | ------------------------------------------- | ---- | --------- |
-| DB-001 | Crear base de datos                         | P0   | pendiente |
-| DB-002 | Gestión de propiedades                      | P0   | pendiente |
-| DB-003 | Tipos básicos                               | P0   | pendiente |
+| DB-001 | Crear base de datos                         | P0   | hecho     |
+| DB-002 | Gestión de propiedades                      | P0   | en curso  |
+| DB-003 | Tipos básicos                               | P0   | en curso  |
 | DB-004 | Propiedades automáticas                     | P0   | pendiente |
 | DB-005 | Relación                                    | P1   | pendiente |
 | DB-006 | Rollup                                      | P1   | pendiente |
@@ -134,17 +134,17 @@ IDs y detalles en `docs/spec/05-func-editor-paginas.md`, `06-func-bases-de-datos
 | DB-010 | Progreso                                    | P2   | pendiente |
 | DB-011 | Ubicación                                   | P2   | pendiente |
 | DB-012 | Propiedad IA                                | P2   | pendiente |
-| DB-013 | Opciones de select                          | P0   | pendiente |
-| DB-020 | Pestañas de vistas                          | P0   | pendiente |
-| DB-021 | Vista Tabla                                 | P0   | pendiente |
-| DB-022 | Vista Tablero (Kanban)                      | P0   | pendiente |
-| DB-023 | Vista Lista                                 | P1   | pendiente |
-| DB-024 | Vista Galería                               | P1   | pendiente |
-| DB-025 | Vista Calendario                            | P1   | pendiente |
-| DB-026 | Vista Línea de tiempo (Gantt)               | P2   | pendiente |
+| DB-013 | Opciones de select                          | P0   | en curso  |
+| DB-020 | Pestañas de vistas                          | P0   | en curso  |
+| DB-021 | Vista Tabla                                 | P0   | en curso  |
+| DB-022 | Vista Tablero (Kanban)                      | P0   | en curso  |
+| DB-023 | Vista Lista                                 | P1   | en curso  |
+| DB-024 | Vista Galería                               | P1   | en curso  |
+| DB-025 | Vista Calendario                            | P1   | en curso  |
+| DB-026 | Vista Línea de tiempo (Gantt)               | P2   | en curso  |
 | DB-027 | Vista Gráfico                               | P2   | pendiente |
 | DB-028 | Vista Mapa                                  | P2   | pendiente |
-| DB-029 | Vista Feed                                  | P2   | pendiente |
+| DB-029 | Vista Feed                                  | P2   | en curso  |
 | DB-040 | Filtros                                     | P0   | pendiente |
 | DB-041 | Ordenar                                     | P0   | pendiente |
 | DB-042 | Agrupar y subagrupar                        | P1   | pendiente |

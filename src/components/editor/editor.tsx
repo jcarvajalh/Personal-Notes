@@ -2,10 +2,9 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/theme-provider";
 import { del as idbDel, set as idbSet } from "idb-keyval";
-import { toast } from "sonner";
-import { FileText, Info } from "lucide-react";
+import { Database, FileText, Info, SquarePlus } from "lucide-react";
 
 import {
   filterSuggestionItems,
@@ -14,8 +13,13 @@ import {
 } from "@blocknote/core";
 import { es as esLocale } from "@blocknote/core/locales";
 import {
+  FormattingToolbar,
+  FormattingToolbarController,
   getDefaultReactSlashMenuItems,
+  getFormattingToolbarItems,
   SuggestionMenuController,
+  useBlockNoteEditor,
+  useComponentsContext,
   useCreateBlockNote,
   type DefaultReactSuggestionItem,
 } from "@blocknote/react";
@@ -26,6 +30,8 @@ import { editorSchema } from "@/components/editor/schema";
 import { useSaveStatusStore } from "@/stores/save-status";
 import { pageKeys } from "@/hooks/use-pages";
 import { createPageAction, savePageContentAction, searchPages } from "@/server/actions/pages";
+import { createDatabaseAction } from "@/server/actions/databases";
+import { OFFERED_VIEW_TYPES, VIEW_LABELS } from "@/lib/database/types";
 
 const SAVE_DEBOUNCE_MS = 800; // flujo 4.3, paso 2
 
@@ -33,9 +39,31 @@ interface EditorProps {
   pageId: string;
   initialContent: unknown;
   initialVersion: number;
+  onCreateCard?: (content: unknown[]) => void;
 }
 
-export function Editor({ pageId, initialContent, initialVersion }: EditorProps) {
+/** Botón "Agregar a tarjeta" en la barra de formato: mueve la selección a una card. */
+function AddToCardButton({ onCreateCard }: { onCreateCard?: (content: unknown[]) => void }) {
+  const editor = useBlockNoteEditor();
+  const Components = useComponentsContext();
+  if (!Components) return null;
+  return (
+    <Components.FormattingToolbar.Button
+      label="Agregar a tarjeta"
+      mainTooltip="Agregar a tarjeta"
+      icon={<SquarePlus className="size-4" />}
+      onClick={() => {
+        const selection = editor.getSelection();
+        const blocks = selection?.blocks ?? [editor.getTextCursorPosition().block];
+        if (blocks.length === 0) return;
+        onCreateCard?.(blocks as unknown[]);
+        editor.removeBlocks(blocks);
+      }}
+    />
+  );
+}
+
+export function Editor({ pageId, initialContent, initialVersion, onCreateCard }: EditorProps) {
   const { resolvedTheme } = useTheme();
   const qc = useQueryClient();
   const setStatus = useSaveStatusStore((s) => s.setStatus);
@@ -76,9 +104,6 @@ export function Editor({ pageId, initialContent, initialVersion }: EditorProps) 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bcRef = useRef<BroadcastChannel | null>(null);
   const conflictVersionRef = useRef<number | null>(null);
-  // Referencia a la última versión de `save` para evitar dependencias circulares
-  // (la acción "Sobrescribir" del toast de conflicto la invoca).
-  const saveRef = useRef<((snapshot: boolean) => Promise<void>) | null>(null);
 
   const save = useCallback(
     async (snapshot: boolean) => {
@@ -97,23 +122,11 @@ export function Editor({ pageId, initialContent, initialVersion }: EditorProps) 
           return;
         }
         if (res.data.status === "conflict") {
+          // Conflicto de edición concurrente: se refleja en el indicador de la
+          // barra superior (sin popup intrusivo abajo a la derecha). El usuario
+          // puede recargar para traer la última versión.
           conflictVersionRef.current = res.data.version;
           setStatus("conflict");
-          toast.error("Esta página se editó en otro sitio.", {
-            duration: Infinity,
-            action: { label: "Recargar", onClick: () => window.location.reload() },
-            cancel: {
-              label: "Sobrescribir",
-              onClick: () => {
-                if (conflictVersionRef.current !== null) {
-                  versionRef.current = conflictVersionRef.current;
-                  conflictVersionRef.current = null;
-                }
-                dirtyRef.current = true;
-                void saveRef.current?.(true);
-              },
-            },
-          });
           return;
         }
         versionRef.current = res.data.version;
@@ -128,10 +141,6 @@ export function Editor({ pageId, initialContent, initialVersion }: EditorProps) 
     },
     [editor, pageId, setStatus],
   );
-
-  useEffect(() => {
-    saveRef.current = save;
-  }, [save]);
 
   const handleChange = useCallback(() => {
     dirtyRef.current = true;
@@ -227,10 +236,41 @@ export function Editor({ pageId, initialContent, initialVersion }: EditorProps) 
               handleChange();
             },
           },
+          ...OFFERED_VIEW_TYPES.map((viewType) => ({
+            title: `Vista de ${(VIEW_LABELS[viewType] ?? viewType).toLowerCase()}`,
+            subtext: "Base de datos embebida en esta página",
+            aliases: [
+              "base de datos",
+              "database",
+              "bd",
+              "db",
+              viewType,
+              VIEW_LABELS[viewType]?.toLowerCase() ?? viewType,
+            ],
+            group: "Base de datos",
+            icon: <Database className="size-4" />,
+            onItemClick: async () => {
+              // Inline: crea la BD y la inserta como bloque en el documento actual
+              // (no navega a una subpágina).
+              const res = await createDatabaseAction({
+                parentId: pageId,
+                viewType,
+                isInline: true,
+              });
+              if (res.ok) {
+                qc.invalidateQueries({ queryKey: pageKeys.all });
+                insertOrUpdateBlockForSlashMenu(editor, {
+                  type: "databaseView",
+                  props: { pageId: res.data.pageId },
+                });
+                handleChange();
+              }
+            },
+          })),
         ],
         query,
       ),
-    [editor, handleChange],
+    [editor, handleChange, pageId, qc],
   );
 
   const mentionItems = useCallback(
@@ -274,10 +314,19 @@ export function Editor({ pageId, initialContent, initialVersion }: EditorProps) 
         editor={editor}
         theme={resolvedTheme === "dark" ? "dark" : "light"}
         slashMenu={false}
+        formattingToolbar={false}
       >
         <SuggestionMenuController triggerCharacter="/" getItems={slashItems} />
         <SuggestionMenuController triggerCharacter="@" getItems={mentionItems} />
         <SuggestionMenuController triggerCharacter="[[" getItems={mentionItems} />
+        <FormattingToolbarController
+          formattingToolbar={() => (
+            <FormattingToolbar>
+              {getFormattingToolbarItems()}
+              <AddToCardButton onCreateCard={onCreateCard} />
+            </FormattingToolbar>
+          )}
+        />
       </BlockNoteView>
     </div>
   );

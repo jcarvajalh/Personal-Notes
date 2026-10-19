@@ -5,12 +5,19 @@ import { revalidatePath } from "next/cache";
 import { requireUser, UnauthorizedError } from "@/server/session";
 import { ActionResult, fail, ok } from "@/lib/result";
 import {
+  assignGroupSchema,
+  createGroupSchema,
   createPageSchema,
   duplicatePageSchema,
+  groupIdSchema,
   movePageSchema,
   pageIdSchema,
+  pageIdsSchema,
+  renameGroupSchema,
   renamePageSchema,
+  savePageCardsSchema,
   savePageContentSchema,
+  setFavoritesSchema,
   setPageIconSchema,
   toggleFavoriteSchema,
 } from "@/lib/validators/pages";
@@ -20,6 +27,7 @@ import {
   getBreadcrumbs,
   getChildPages,
   getFavoritePages,
+  getGroups,
   getRecentPages,
   getRootPages,
   getTrashedPages,
@@ -27,6 +35,7 @@ import {
   searchPagesByTitle,
   type Breadcrumb,
   type FullTextMatch,
+  type PageGroup,
   type RecentPage,
   type SidebarNode,
   type TitleMatch,
@@ -76,6 +85,11 @@ export async function listTrash(): Promise<TrashedPage[]> {
 export async function listBreadcrumbs(pageId: string): Promise<Breadcrumb[]> {
   const ctx = await requireUser();
   return getBreadcrumbs(ctx.workspaceId, pageId);
+}
+
+export async function listGroups(): Promise<PageGroup[]> {
+  const ctx = await requireUser();
+  return getGroups(ctx.workspaceId);
 }
 
 export async function searchPages(query: string, excludeIds?: string[]): Promise<TitleMatch[]> {
@@ -209,6 +223,81 @@ export async function toggleFavoriteAction(input: {
   });
 }
 
+/** Multiselección: envía varias páginas (y sus subárboles) a la papelera. */
+export async function trashPagesAction(input: { ids: string[] }): Promise<ActionResult> {
+  return run(async () => {
+    const ctx = await requireUser();
+    const { ids } = pageIdsSchema.parse(input);
+    for (const id of ids) await pageService.trashPage(ctx, id);
+    revalidatePath("/", "layout");
+    return undefined;
+  });
+}
+
+/** Multiselección: marca o desmarca varias páginas como favoritas. */
+export async function setFavoritePagesAction(input: {
+  ids: string[];
+  favorite: boolean;
+}): Promise<ActionResult> {
+  return run(async () => {
+    const ctx = await requireUser();
+    const { ids, favorite } = setFavoritesSchema.parse(input);
+    for (const id of ids) await pageService.setFavorite(ctx, id, favorite);
+    revalidatePath("/", "layout");
+    return undefined;
+  });
+}
+
+// =============================== Grupos ======================================
+
+export async function createGroupAction(input: {
+  name?: string;
+}): Promise<ActionResult<{ id: string }>> {
+  return run(async () => {
+    const ctx = await requireUser();
+    const parsed = createGroupSchema.parse(input);
+    const group = await pageService.createGroup(ctx, parsed.name ?? "Nuevo grupo");
+    revalidatePath("/", "layout");
+    return group;
+  });
+}
+
+export async function renameGroupAction(input: {
+  id: string;
+  name: string;
+}): Promise<ActionResult> {
+  return run(async () => {
+    const ctx = await requireUser();
+    const parsed = renameGroupSchema.parse(input);
+    await pageService.renameGroup(ctx, parsed.id, parsed.name);
+    revalidatePath("/", "layout");
+    return undefined;
+  });
+}
+
+export async function deleteGroupAction(input: { id: string }): Promise<ActionResult> {
+  return run(async () => {
+    const ctx = await requireUser();
+    const parsed = groupIdSchema.parse(input);
+    await pageService.deleteGroup(ctx, parsed.id);
+    revalidatePath("/", "layout");
+    return undefined;
+  });
+}
+
+export async function assignGroupAction(input: {
+  ids: string[];
+  groupId: string | null;
+}): Promise<ActionResult> {
+  return run(async () => {
+    const ctx = await requireUser();
+    const parsed = assignGroupSchema.parse(input);
+    await pageService.assignPagesToGroup(ctx, parsed.ids, parsed.groupId);
+    revalidatePath("/", "layout");
+    return undefined;
+  });
+}
+
 export async function savePageContentAction(input: {
   pageId: string;
   content: unknown[];
@@ -222,6 +311,18 @@ export async function savePageContentAction(input: {
     // El contenido se guarda en cliente (optimista); no revalidamos la ruta para
     // no re-renderizar el editor en cada guardado. El sidebar se refresca aparte.
     return result;
+  });
+}
+
+export async function savePageCardsAction(input: {
+  pageId: string;
+  cards: unknown[];
+}): Promise<ActionResult> {
+  return run(async () => {
+    const ctx = await requireUser();
+    const parsed = savePageCardsSchema.parse(input);
+    await pageService.setPageCards(ctx, parsed.pageId, parsed.cards);
+    return undefined;
   });
 }
 

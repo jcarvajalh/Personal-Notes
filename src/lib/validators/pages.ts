@@ -60,3 +60,47 @@ export const reorderFavoriteSchema = z.object({
   beforeId: z.uuid().nullable().optional(),
   afterId: z.uuid().nullable().optional(),
 });
+
+// Acciones en lote (multiselección en el sidebar).
+export const pageIdsSchema = z.object({
+  ids: z.array(z.uuid()).min(1).max(500),
+});
+
+export const setFavoritesSchema = z.object({
+  ids: z.array(z.uuid()).min(1).max(500),
+  favorite: z.boolean(),
+});
+
+// Grupos del sidebar.
+export const createGroupSchema = z.object({
+  name: z.string().max(200).optional(),
+});
+
+export const renameGroupSchema = z.object({
+  id: z.uuid(),
+  name: z.string().max(200),
+});
+
+export const groupIdSchema = z.object({
+  id: z.uuid(),
+});
+
+export const assignGroupSchema = z.object({
+  ids: z.array(z.uuid()).min(1).max(500),
+  groupId: z.uuid().nullable(),
+});
+
+// Tarjetas flotantes movibles del lienzo de la página.
+export const pageCardSchema = z.object({
+  id: z.string().max(64),
+  x: z.number(),
+  y: z.number(),
+  width: z.number().min(120).max(2000),
+  height: z.number().min(80).max(2000),
+  content: z.array(z.unknown()),
+});
+
+export const savePageCardsSchema = z.object({
+  pageId: z.uuid(),
+  cards: z.array(pageCardSchema).max(200),
+});

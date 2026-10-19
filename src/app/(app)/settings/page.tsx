@@ -1,7 +1,6 @@
 "use client";
 
-import { useTheme } from "next-themes";
-
+import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { useMounted } from "@/hooks/use-mounted";
 import { SecuritySettings } from "@/components/settings/security-settings";

@@ -175,3 +175,120 @@ resaltado de `ts_headline` case con la consulta sin tildes, el headline se gener
 Consecuencia: el fragmento resaltado se muestra sin tildes (compromiso cosmético menor)
 a cambio de resaltado consistente con o sin tildes. Los marcadores `[[h]]…[[/h]]` se
 convierten a `<mark>` en el cliente (sin inyectar HTML, §8.2).
+
+## DEC-022 · 2026-10-19 · Grupos del sidebar, multiselección y mejoras de UX
+
+Mejoras sobre la Fase 1 a partir de feedback de uso:
+
+- **Grupos personalizados** del sidebar: nueva tabla `page_groups` (id, workspace_id,
+  name, position) y columna `pages.group_id` (FK `on delete set null`), migración
+  `drizzle/0005_*.sql`. Las páginas raíz sin grupo siguen en la sección "Páginas";
+  asignar una página a un grupo la promueve a raíz dentro de ese grupo. Solo afecta a
+  páginas raíz; las subpáginas ignoran `group_id`. `SidebarNode` incluye `groupId` y la
+  partición por grupo se hace en cliente (una sola consulta de raíz + una de grupos).
+- **Multiselección**: estado efímero en `src/stores/selection.ts` (no persistido);
+  acciones en lote `trashPagesAction` / `setFavoritePagesAction` (bucle en servidor, un
+  solo `revalidatePath`). La barra de acciones vive en el sidebar.
+- **Rendimiento**: `onMutate` optimista (crear/eliminar/lote) con rollback por snapshot
+  y recarga en `onSettled`; `src/app/(app)/[pageId]/loading.tsx` para feedback inmediato
+  al navegar.
+- **UX**: cursor `pointer` global para elementos clicables (regla en `globals.css`);
+  fondo del editor BlockNote transparente (quita la "card gris"); se elimina el toast de
+  conflicto de edición (se conserva solo el indicador discreto de la barra superior).
+
+## DEC-023 · 2026-10-19 · ThemeProvider propio (sustituye a next-themes)
+
+En React 19.2+ / Next 16 el <script> antiparpadeo que `next-themes` renderiza dentro de
+su `ThemeProvider` (componente cliente) dispara el error de consola "Encountered a
+script tag while rendering React component" al re-renderizarse en cliente, y la librería
+no ofrece desactivarlo. Se sustituye por `src/components/theme-provider.tsx` (mismo API
+`useTheme`/`ThemeProvider`, SE-001: claro/oscuro/sistema, persistencia en localStorage
+clave `theme`, clase en `<html>`). El proveedor evita `setState` en el cuerpo de efectos
+(inicialización perezosa + handlers). `next-themes` queda sin usar (puede eliminarse de
+package.json).
+
+**Script antiparpadeo:** React 19 impone dos reglas sobre `<script>` en componentes:
+(1) no se permite `<script>` **inline** (dispara "Encountered a script tag…"); (2) un
+`<script>` **síncrono/defer** debe ir en el `<head>` raíz o llevar `async`. La solución
+que cumple ambas: un archivo **externo** `public/theme-init.js` referenciado con un
+`<script src>` **síncrono dentro del `<head>`** de `app/layout.tsx` (externo → evita la
+regla 1; en el head → cumple la regla 2; síncrono → bloquea hasta ejecutarse, sin
+parpadeo). Se descartó `next/script strategy="beforeInteractive"` porque en dev lo
+renderiza fuera del `<head>` (error de orden). La regla de lint `@next/next/no-sync-scripts`
+se silencia **solo en esa línea** (el sync es intencionado: archivo mínimo, no bloquea de
+forma apreciable). La lógica del archivo debe mantenerse en sincronía con el proveedor.
+
+## DEC-024 · 2026-10-19 · Bases de datos — Sub-bloque 1 (esquema + Tabla)
+
+Arranca la Fase 2. Tablas `databases`, `database_properties`, `database_views`
+(sección 6.6) en `schema/database.ts`, migración `drizzle/0006`. Desviaciones del
+contrato por pragmatismo, a revisar en sub-bloques posteriores:
+
+- `pages.database_id` **sin FK** a `databases` (evita import circular entre
+  `core.ts` y `database.ts`). El borrado de filas al eliminar la BD se gestiona en
+  el servicio/papelera (las filas son páginas `kind=row`; al enviar la BD a la
+  papelera habrá que arrastrar sus filas — pendiente de cablear en papelera).
+- `databases.title_property_id` y `default_view_id` como `uuid` sin FK (referencias
+  circulares con properties/views).
+
+Alcance del Sub-bloque 1: DB-001 (crear BD página completa, con Title + vista Tabla),
+DB-002 parcial (añadir/renombrar/eliminar propiedad y editar config), DB-003 parcial
+(title, text, number, checkbox, select, date), DB-013 (opciones de select al vuelo),
+DB-020 parcial (pestañas: crear/renombrar/eliminar vistas Tabla), DB-021 parcial
+(Vista Tabla con edición inline, añadir fila/propiedad, eliminar fila). Valores en
+`pages.properties[propertyId]`; el título de la fila es `pages.title`. Edición de
+celdas optimista (React Query). Entradas: `/` del editor ("Base de datos", crea
+subpágina) y paleta de comandos ("Nueva base de datos", crea en la raíz). Vistas
+tablero/lista/galería/calendario/cronograma/feed/gráfico/mapa: sub-bloques 2 y 3.
+
+## DEC-025 · 2026-10-19 · Bases de datos — Sub-bloque 2 (vistas) y creación por categoría
+
+Corrección de UX pedida por el dueño (doc `docs/vistas.docx`): "Base de datos" es una
+**categoría** con las 8 vistas, no una opción única. El menú "/" del editor y la paleta
+de comandos ofrecen las 8 (Tabla, Tablero, Galería, Lista, Feed, Panel de control,
+Calendario, Cronograma); cada una crea la BD con esa vista por defecto. El "+" de
+pestañas también ofrece las 8. `createDatabaseAction` acepta `viewType`.
+
+Se añade el valor **`dashboard`** al enum `view_type` (migración `0007`), pese a no estar
+en la spec 6.3, porque el dueño lo pide (vista "Panel de control", nueva en Notion).
+
+Implementadas en este sub-bloque: **Tablero (Kanban** con arrastre dnd-kit; agrupa por la
+primera propiedad `select`; soltar actualiza su valor), **Lista**, **Galería** y **Feed**
+(`src/components/database/views.tsx`; display de valores de solo lectura en
+`value-display.tsx`, reutilizado por las celdas). En Tablero/Lista/Galería/Feed, el título
+enlaza a la página de la fila (`kind=row`). Pendientes (sub-bloque 3): Calendario,
+Cronograma (timeline/Gantt) y Panel de control; muestran aviso "en construcción".
+
+## DEC-026 · 2026-10-19 · Bases de datos inline + Sub-bloque 3 (Calendario/Cronograma/Panel)
+
+Corrección pedida por el dueño: las vistas del menú "/" se muestran **embebidas en el
+documento** (inline), no abren una subpágina. Se añade un bloque de editor
+`databaseView` (`src/components/editor/blocks/database-block.tsx`, registrado en
+`schema.ts`) que guarda el `pageId` de la página contenedora de la BD; `InlineDatabase`
+(en `database-view.tsx`) carga bundle+filas por ese id (React Query) y renderiza
+`DatabaseScreen` en modo `inline`. El slash de "Base de datos" crea la BD con
+`isInline:true` e inserta el bloque (no navega). La paleta de comandos mantiene la
+creación de BD a **página completa** (acción global, distinta del inline).
+
+Sub-bloque 3: vistas **Calendario** (DB-025; rejilla mensual, agrupa por la primera
+propiedad fecha, crea fila en un día, navega a la fila), **Cronograma/Gantt** (DB-026;
+barras por fecha inicio/fin — usa la 1.ª propiedad fecha como inicio y la 2.ª como fin;
+línea de "hoy") y **Panel de control** (`dashboard`; tarjetas de indicadores: total de
+filas, suma de números, % de casillas, desglose por opciones de select). Pendiente:
+filtros/orden/agrupación persistentes por vista (config), cálculos de pie de columna,
+y vistas Gráfico/Mapa (no pedidas por el dueño).
+
+## DEC-027 · 2026-10-19 · Tarjetas movibles (lienzo flotante de la página)
+
+Funcionalidad pedida por el dueño (fuera de la spec): seleccionar contenido → "Agregar a
+tarjeta" → una card gris editable que se mueve libremente por la página (como una ventana).
+Modelo: columna `pages.cards` jsonb (migración `0008`): `[{ id, x, y, width, height,
+content: Bloque[] }]`. UI: `CardLayer`/`CardPanel` (`src/components/editor/card-layer.tsx`)
+renderiza una capa flotante absoluta sobre el documento; cada tarjeta tiene su propio
+mini-editor BlockNote, barra de arrastre (pointer capture, imperativo para fluidez) y
+redimensionado por la esquina. `PageBody` (`page-body.tsx`) mantiene el estado de las
+tarjetas y las autoguarda (rebote 700 ms, `savePageCardsAction`), independiente del
+autoguardado del contenido principal. Entradas: botón "Tarjeta" (card vacía) y un botón
+"Agregar a tarjeta" en la barra de formato de BlockNote (mueve los bloques seleccionados a
+una card nueva y los quita del documento). La ruta `[pageId]` usa `PageBody` con
+`key={page.id}` para reiniciar el estado al cambiar de página.

@@ -3,7 +3,7 @@ import "server-only";
 import { and, asc, desc, eq, inArray, isNull, isNotNull, sql } from "drizzle-orm";
 
 import { db } from "@/server/db";
-import { pages } from "@/server/db/schema";
+import { pageGroups, pages } from "@/server/db/schema";
 import type { PageIcon } from "@/lib/validators/pages";
 import { HL_END, HL_START } from "@/lib/search";
 
@@ -15,6 +15,7 @@ export interface SidebarNode {
   position: string;
   isFavorite: boolean;
   hasChildren: boolean;
+  groupId: string | null;
 }
 
 // Subconsulta: ¿el nodo tiene hijos no eliminados? Para pintar el chevron.
@@ -31,6 +32,7 @@ const sidebarColumns = {
   position: pages.position,
   isFavorite: pages.isFavorite,
   hasChildren: hasChildrenExpr,
+  groupId: pages.groupId,
 };
 
 function mapNode(row: {
@@ -41,6 +43,7 @@ function mapNode(row: {
   position: string;
   isFavorite: boolean;
   hasChildren: boolean;
+  groupId: string | null;
 }): SidebarNode {
   return {
     id: row.id,
@@ -50,7 +53,23 @@ function mapNode(row: {
     position: row.position,
     isFavorite: row.isFavorite,
     hasChildren: row.hasChildren,
+    groupId: row.groupId,
   };
+}
+
+export interface PageGroup {
+  id: string;
+  name: string;
+  position: string;
+}
+
+/** Grupos personalizados del sidebar, ordenados por su posición. */
+export async function getGroups(workspaceId: string): Promise<PageGroup[]> {
+  return db
+    .select({ id: pageGroups.id, name: pageGroups.name, position: pageGroups.position })
+    .from(pageGroups)
+    .where(eq(pageGroups.workspaceId, workspaceId))
+    .orderBy(asc(pageGroups.position));
 }
 
 /** Páginas raíz del workspace (NV-001). Carga perezosa: solo el primer nivel. */

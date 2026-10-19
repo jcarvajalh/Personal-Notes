@@ -26,7 +26,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Notion personal",
+  title: "Blocktion",
   description: "Workspace personal de notas, documentos y bases de datos.",
 };
 
@@ -44,6 +44,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
       className={`${inter.variable} ${cormorant.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        {/* SE-001: fija el tema antes de pintar (sin parpadeo). Script EXTERNO
+            (no inline, para no disparar el aviso de React 19) y SÍNCRONO dentro
+            del <head> (así bloquea hasta ejecutarse y no hay parpadeo; es la
+            colocación que exige React 19 para scripts síncronos). El sync es
+            intencionado aquí (archivo mínimo), por eso se silencia la regla. */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script src="/theme-init.js" />
+      </head>
       <body className="flex min-h-full flex-col">
         <Providers>{children}</Providers>
       </body>

@@ -8,6 +8,7 @@ interface PageEditorProps {
   pageId: string;
   initialContent: unknown;
   initialVersion: number;
+  onCreateCard?: (content: unknown[]) => void;
 }
 
 // Carga diferida del editor BlockNote (sin SSR: usa APIs del navegador y es
@@ -23,13 +24,19 @@ const Editor = dynamic(() => import("@/components/editor/editor").then((m) => m.
   ),
 });
 
-export function PageEditor({ pageId, initialContent, initialVersion }: PageEditorProps) {
+export function PageEditor({
+  pageId,
+  initialContent,
+  initialVersion,
+  onCreateCard,
+}: PageEditorProps) {
   return (
     <Editor
       key={pageId}
       pageId={pageId}
       initialContent={initialContent}
       initialVersion={initialVersion}
+      onCreateCard={onCreateCard}
     />
   );
 }

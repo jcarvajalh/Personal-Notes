@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useTheme } from "next-themes";
 
+import { useTheme } from "@/components/theme-provider";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { SidebarContent, SidebarResizer } from "@/components/sidebar/sidebar";
 import { Topbar } from "@/components/topbar/topbar";
@@ -13,13 +13,14 @@ import { useSidebarStore, SIDEBAR_DEFAULT_WIDTH } from "@/stores/sidebar";
 import { useDialogsStore } from "@/stores/dialogs";
 import { usePageMutations } from "@/hooks/use-pages";
 import { useMounted } from "@/hooks/use-mounted";
-import type { SidebarNode } from "@/server/queries/pages";
+import type { PageGroup, SidebarNode } from "@/server/queries/pages";
 
 interface AppShellProps {
   children: React.ReactNode;
   workspaceName: string;
   initialRoot: SidebarNode[];
   initialFavorites: SidebarNode[];
+  initialGroups: PageGroup[];
 }
 
 export function AppShell({
@@ -27,6 +28,7 @@ export function AppShell({
   workspaceName,
   initialRoot,
   initialFavorites,
+  initialGroups,
 }: AppShellProps) {
   const mounted = useMounted();
   const router = useRouter();
@@ -70,6 +72,7 @@ export function AppShell({
     <SidebarContent
       initialRoot={initialRoot}
       initialFavorites={initialFavorites}
+      initialGroups={initialGroups}
       workspaceName={workspaceName}
     />
   );

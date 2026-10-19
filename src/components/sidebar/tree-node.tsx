@@ -9,7 +9,15 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
-import { ChevronRight, MoreHorizontal, Plus } from "lucide-react";
+import {
+  CheckSquare,
+  ChevronRight,
+  Folder,
+  FolderMinus,
+  FolderPlus,
+  MoreHorizontal,
+  Plus,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
@@ -26,12 +34,16 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { useChildPages, usePageMutations } from "@/hooks/use-pages";
+import { useChildPages, useGroups, usePageMutations } from "@/hooks/use-pages";
 import { useSidebarStore } from "@/stores/sidebar";
-import { usePageActions } from "@/components/sidebar/page-menu";
+import { useSelectionStore } from "@/stores/selection";
+import { usePageActions, type PageActionItem } from "@/components/sidebar/page-menu";
 import type { SidebarNode } from "@/server/queries/pages";
 
 interface TreeNodeProps {
@@ -47,7 +59,14 @@ export function TreeNode({ node, depth, parentId, prevId, nextId }: TreeNodeProp
   const router = useRouter();
   const expanded = useSidebarStore((s) => Boolean(s.expanded[node.id]));
   const toggleExpanded = useSidebarStore((s) => s.toggleExpanded);
-  const { create, rename } = usePageMutations();
+  const { create, rename, assignGroup, createGroup } = usePageMutations();
+  const groups = useGroups().data ?? [];
+
+  // Multiselección (eliminar / favoritos en lote).
+  const selected = useSelectionStore((s) => s.ids.includes(node.id));
+  const selectionActive = useSelectionStore((s) => s.ids.length > 0);
+  const toggleSelection = useSelectionStore((s) => s.toggle);
+  const addSelection = useSelectionStore((s) => s.add);
 
   const [renaming, setRenaming] = useState(false);
   const [draftTitle, setDraftTitle] = useState(node.title);
@@ -58,6 +77,16 @@ export function TreeNode({ node, depth, parentId, prevId, nextId }: TreeNodeProp
     setRenaming(true);
   };
   const actions = usePageActions(node, { onStartRename: startRename });
+  // "Seleccionar" inicia/añade a la multiselección desde el menú.
+  const menuActions: PageActionItem[] = [
+    {
+      key: "select",
+      label: "Seleccionar",
+      icon: CheckSquare,
+      onSelect: () => addSelection(node.id),
+    },
+    ...actions,
+  ];
 
   const isActive = pathname === `/${node.id}`;
 
@@ -134,30 +163,44 @@ export function TreeNode({ node, depth, parentId, prevId, nextId }: TreeNodeProp
           >
             <div
               data-active={isActive}
+              data-selected={selected}
               className={cn(
                 "group/row flex h-7 items-center gap-1 rounded-md pr-1 text-sm",
                 "hover:bg-muted data-[active=true]:bg-muted data-[active=true]:font-medium",
+                "data-[selected=true]:bg-brand-muted",
                 inside.isOver && "ring-brand ring-2 ring-inset",
                 draggable.isDragging && "opacity-40",
               )}
               style={{ paddingLeft }}
             >
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (node.hasChildren) toggleExpanded(node.id);
-                }}
-                className={cn(
-                  "text-muted-foreground hover:bg-accent flex size-4 shrink-0 items-center justify-center rounded",
-                  !node.hasChildren && "invisible",
-                )}
-                aria-label={expanded ? "Colapsar" : "Expandir"}
-              >
-                <ChevronRight
-                  className={cn("size-3.5 transition-transform", expanded && "rotate-90")}
+              {selectionActive ? (
+                <input
+                  type="checkbox"
+                  checked={selected}
+                  onChange={() => toggleSelection(node.id)}
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label={`Seleccionar ${node.title || "página"}`}
+                  className="size-3.5 shrink-0 cursor-pointer"
+                  style={{ accentColor: "var(--brand)" }}
                 />
-              </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (node.hasChildren) toggleExpanded(node.id);
+                  }}
+                  className={cn(
+                    "text-muted-foreground hover:bg-accent flex size-4 shrink-0 items-center justify-center rounded",
+                    !node.hasChildren && "invisible",
+                  )}
+                  aria-label={expanded ? "Colapsar" : "Expandir"}
+                >
+                  <ChevronRight
+                    className={cn("size-3.5 transition-transform", expanded && "rotate-90")}
+                  />
+                </button>
+              )}
 
               <PageIcon icon={node.icon} className="shrink-0" />
 
@@ -192,7 +235,7 @@ export function TreeNode({ node, depth, parentId, prevId, nextId }: TreeNodeProp
                     <MoreHorizontal />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" side="right">
-                    {actions.map((a) => (
+                    {menuActions.map((a) => (
                       <div key={a.key}>
                         {a.separatorBefore && <DropdownMenuSeparator />}
                         <DropdownMenuItem variant={a.variant} onClick={a.onSelect}>
@@ -201,6 +244,48 @@ export function TreeNode({ node, depth, parentId, prevId, nextId }: TreeNodeProp
                         </DropdownMenuItem>
                       </div>
                     ))}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        <Folder />
+                        Añadir a grupo
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        {groups.map((g) => (
+                          <DropdownMenuItem
+                            key={g.id}
+                            disabled={g.id === node.groupId}
+                            onClick={() => assignGroup.mutate({ ids: [node.id], groupId: g.id })}
+                          >
+                            <Folder />
+                            {g.name || "Grupo sin nombre"}
+                          </DropdownMenuItem>
+                        ))}
+                        {node.groupId && (
+                          <DropdownMenuItem
+                            onClick={() => assignGroup.mutate({ ids: [node.id], groupId: null })}
+                          >
+                            <FolderMinus />
+                            Quitar del grupo
+                          </DropdownMenuItem>
+                        )}
+                        {groups.length > 0 && <DropdownMenuSeparator />}
+                        <DropdownMenuItem
+                          onClick={() =>
+                            createGroup.mutate(
+                              {},
+                              {
+                                onSuccess: (data) =>
+                                  assignGroup.mutate({ ids: [node.id], groupId: data.id }),
+                              },
+                            )
+                          }
+                        >
+                          <FolderPlus />
+                          Nuevo grupo…
+                        </DropdownMenuItem>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <Button
@@ -215,7 +300,7 @@ export function TreeNode({ node, depth, parentId, prevId, nextId }: TreeNodeProp
             </div>
           </ContextMenuTrigger>
           <ContextMenuContent>
-            {actions.map((a) => (
+            {menuActions.map((a) => (
               <div key={a.key}>
                 {a.separatorBefore && <ContextMenuSeparator />}
                 <ContextMenuItem variant={a.variant} onClick={a.onSelect}>
