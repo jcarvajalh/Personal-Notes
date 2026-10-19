@@ -96,7 +96,7 @@ IDs y detalles en `docs/spec/05-func-editor-paginas.md`, `06-func-bases-de-datos
 | ED-021 | Breadcrumb                             | P2   | pendiente |
 | ED-022 | Bloque sincronizado                    | P2   | pendiente |
 | ED-023 | Botón                                  | P2   | pendiente |
-| ED-024 | Base de datos inline / vista enlazada  | P0   | pendiente |
+| ED-024 | Base de datos inline / vista enlazada  | P0   | hecho     |
 | ED-025 | Diagrama Mermaid                       | P1   | pendiente |
 | ED-026 | Pizarra Excalidraw                     | P2   | pendiente |
 | ED-027 | Bloque de consulta                     | P2   | pendiente |
@@ -123,8 +123,8 @@ IDs y detalles en `docs/spec/05-func-editor-paginas.md`, `06-func-bases-de-datos
 | ID     | Funcionalidad                               | Prio | Estado    |
 | ------ | ------------------------------------------- | ---- | --------- |
 | DB-001 | Crear base de datos                         | P0   | hecho     |
-| DB-002 | Gestión de propiedades                      | P0   | en curso  |
-| DB-003 | Tipos básicos                               | P0   | en curso  |
+| DB-002 | Gestión de propiedades                      | P0   | hecho     |
+| DB-003 | Tipos básicos                               | P0   | hecho     |
 | DB-004 | Propiedades automáticas                     | P0   | pendiente |
 | DB-005 | Relación                                    | P1   | pendiente |
 | DB-006 | Rollup                                      | P1   | pendiente |
@@ -134,22 +134,22 @@ IDs y detalles en `docs/spec/05-func-editor-paginas.md`, `06-func-bases-de-datos
 | DB-010 | Progreso                                    | P2   | pendiente |
 | DB-011 | Ubicación                                   | P2   | pendiente |
 | DB-012 | Propiedad IA                                | P2   | pendiente |
-| DB-013 | Opciones de select                          | P0   | en curso  |
-| DB-020 | Pestañas de vistas                          | P0   | en curso  |
-| DB-021 | Vista Tabla                                 | P0   | en curso  |
-| DB-022 | Vista Tablero (Kanban)                      | P0   | en curso  |
-| DB-023 | Vista Lista                                 | P1   | en curso  |
-| DB-024 | Vista Galería                               | P1   | en curso  |
-| DB-025 | Vista Calendario                            | P1   | en curso  |
-| DB-026 | Vista Línea de tiempo (Gantt)               | P2   | en curso  |
+| DB-013 | Opciones de select                          | P0   | hecho     |
+| DB-020 | Pestañas de vistas                          | P0   | hecho     |
+| DB-021 | Vista Tabla                                 | P0   | hecho     |
+| DB-022 | Vista Tablero (Kanban)                      | P0   | hecho     |
+| DB-023 | Vista Lista                                 | P1   | hecho     |
+| DB-024 | Vista Galería                               | P1   | hecho     |
+| DB-025 | Vista Calendario                            | P1   | hecho     |
+| DB-026 | Vista Línea de tiempo (Gantt)               | P2   | hecho     |
 | DB-027 | Vista Gráfico                               | P2   | pendiente |
 | DB-028 | Vista Mapa                                  | P2   | pendiente |
-| DB-029 | Vista Feed                                  | P2   | en curso  |
-| DB-040 | Filtros                                     | P0   | pendiente |
-| DB-041 | Ordenar                                     | P0   | pendiente |
-| DB-042 | Agrupar y subagrupar                        | P1   | pendiente |
+| DB-029 | Vista Feed                                  | P2   | hecho     |
+| DB-040 | Filtros                                     | P0   | hecho     |
+| DB-041 | Ordenar                                     | P0   | hecho     |
+| DB-042 | Agrupar y subagrupar                        | P1   | hecho     |
 | DB-043 | Cálculos                                    | P1   | pendiente |
-| DB-044 | Búsqueda en BD                              | P0   | pendiente |
+| DB-044 | Búsqueda en BD                              | P0   | hecho     |
 | DB-045 | Abrir fila                                  | P0   | pendiente |
 | DB-046 | Plantillas de BD                            | P1   | pendiente |
 | DB-047 | Edición en bloque                           | P1   | pendiente |

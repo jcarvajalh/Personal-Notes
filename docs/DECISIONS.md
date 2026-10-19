@@ -292,3 +292,20 @@ autoguardado del contenido principal. Entradas: botón "Tarjeta" (card vacía) y
 "Agregar a tarjeta" en la barra de formato de BlockNote (mueve los bloques seleccionados a
 una card nueva y los quita del documento). La ruta `[pageId]` usa `PageBody` con
 `key={page.id}` para reiniciar el estado al cambiar de página.
+
+## DEC-028 · 2026-10-19 · Config de vista: filtros, orden, agrupación y búsqueda
+
+Completa DB-040 (Filtros), DB-041 (Ordenar), DB-042 (Agrupar) y DB-044 (Búsqueda en BD).
+La config vive en `database_views.config` (jsonb) con la forma `ViewConfig`
+(`src/lib/database/view-config.ts`): `{ filters, filterOp, sorts, group_by, search }`.
+El motor es **puro y en cliente** (`applyView` + `groupRows`): recibe filas y propiedades
+y devuelve copias filtradas/ordenadas/agrupadas, sin tocar la base de datos. Operadores
+por grupo de tipo (`OPERATORS`/`operatorGroup`): texto, número, select/status, checkbox,
+fecha; los unarios (`is_empty`, `checked`…) ocultan el control de valor.
+
+UI en `ViewToolbar` (`src/components/database/view-toolbar.tsx`): caja de búsqueda con
+rebote 300 ms, y popovers de Filtros/Ordenar/Agrupar. Los cambios se persisten vía
+`use-database` → acción de actualizar vista (merge parcial de `config`). Todas las vistas
+(`views.tsx`, `table-view.tsx`) consumen `applyView` antes de renderizar, de modo que
+filtro/orden/búsqueda son consistentes en Tabla, Tablero, Lista, Galería, Feed, etc.
+Pendiente: cálculos de pie de columna (DB-043) y filtros relativos a fecha/usuario (DB-052).
