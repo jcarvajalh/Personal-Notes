@@ -1,18 +1,14 @@
-import { fileTypeFromBuffer } from "file-type";
 import { NextResponse } from "next/server";
 
 import { requireUser, UnauthorizedError } from "@/server/session";
 import { db } from "@/server/db";
 import { files } from "@/server/db/schema";
 import { uuidv7 } from "@/lib/ids";
+import { validateImageUpload } from "@/lib/uploads";
 import { isStorageConfigured, uploadObject } from "@/server/services/storage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-// Tipos permitidos en la Fase 1 (imágenes rasterizadas; SVG excluido por XSS).
-const ALLOWED_MIME = new Set(["image/png", "image/jpeg", "image/gif", "image/webp", "image/avif"]);
-const MAX_BYTES = 50 * 1024 * 1024; // 50 MB (§8.2)
 
 function json(data: unknown, status = 200) {
   return NextResponse.json(data, { status });
@@ -28,10 +24,6 @@ export async function POST(request: Request) {
     throw error;
   }
 
-  if (!isStorageConfigured()) {
-    return json({ error: "Almacenamiento no configurado en el servidor." }, 503);
-  }
-
   const form = await request.formData();
   const file = form.get("file");
   const pageIdRaw = form.get("pageId");
@@ -40,25 +32,27 @@ export async function POST(request: Request) {
   if (!(file instanceof File)) {
     return json({ error: "Falta el archivo." }, 400);
   }
-  if (file.size > MAX_BYTES) {
-    return json({ error: "El archivo supera el máximo de 50 MB." }, 413);
-  }
 
   const bytes = new Uint8Array(await file.arrayBuffer());
 
-  // SEC-040/041: validar el tipo REAL por magic bytes, no el declarado por el
-  // cliente. Rechaza un archivo con extensión/MIME falsos.
-  const sniffed = await fileTypeFromBuffer(bytes);
-  if (!sniffed || !ALLOWED_MIME.has(sniffed.mime)) {
-    return json({ error: "Tipo de archivo no permitido." }, 415);
+  // SEC-040/041: validar tamaño y tipo REAL (magic bytes) antes de tocar el
+  // almacenamiento, para que un tipo falso se rechace aunque el storage no esté
+  // configurado.
+  const valid = await validateImageUpload(bytes, file.size);
+  if (!valid.ok) {
+    return json({ error: valid.reason }, valid.status);
+  }
+
+  if (!isStorageConfigured()) {
+    return json({ error: "Almacenamiento no configurado en el servidor." }, 503);
   }
 
   const id = uuidv7();
-  const key = `${ctx.workspaceId}/${id}.${sniffed.ext}`;
+  const key = `${ctx.workspaceId}/${id}.${valid.ext}`;
 
   let url: string;
   try {
-    url = await uploadObject({ key, body: bytes, contentType: sniffed.mime });
+    url = await uploadObject({ key, body: bytes, contentType: valid.mime });
   } catch {
     return json({ error: "No se pudo subir el archivo." }, 500);
   }
@@ -70,9 +64,9 @@ export async function POST(request: Request) {
     storageKey: key,
     url,
     filename: file.name,
-    mimeType: sniffed.mime,
+    mimeType: valid.mime,
     sizeBytes: bytes.byteLength,
   });
 
-  return json({ id, url, name: file.name, mimeType: sniffed.mime });
+  return json({ id, url, name: file.name, mimeType: valid.mime });
 }
