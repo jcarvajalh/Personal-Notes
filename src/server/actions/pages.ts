@@ -23,8 +23,10 @@ import {
   getRecentPages,
   getRootPages,
   getTrashedPages,
+  searchFullText,
   searchPagesByTitle,
   type Breadcrumb,
+  type FullTextMatch,
   type RecentPage,
   type SidebarNode,
   type TitleMatch,
@@ -79,6 +81,11 @@ export async function listBreadcrumbs(pageId: string): Promise<Breadcrumb[]> {
 export async function searchPages(query: string, excludeIds?: string[]): Promise<TitleMatch[]> {
   const ctx = await requireUser();
   return searchPagesByTitle(ctx.workspaceId, query, { excludeIds });
+}
+
+export async function searchContent(query: string): Promise<FullTextMatch[]> {
+  const ctx = await requireUser();
+  return searchFullText(ctx.workspaceId, query);
 }
 
 // =============================== Mutaciones ==================================

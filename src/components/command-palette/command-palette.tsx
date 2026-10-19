@@ -18,7 +18,8 @@ import {
 import { PageIcon } from "@/components/page-icon";
 import { useDialogsStore } from "@/stores/dialogs";
 import { usePageMutations, useRecents } from "@/hooks/use-pages";
-import { searchPages } from "@/server/actions/pages";
+import { searchContent, searchPages } from "@/server/actions/pages";
+import { splitHighlights } from "@/lib/search";
 
 export function CommandPalette() {
   const open = useDialogsStore((s) => s.commandOpen);
@@ -39,6 +40,11 @@ export function CommandPalette() {
   const { data: results = [] } = useQuery({
     queryKey: ["command-search", debounced],
     queryFn: () => searchPages(debounced),
+    enabled: open && debounced.trim().length > 0,
+  });
+  const { data: contentResults = [] } = useQuery({
+    queryKey: ["command-content", debounced],
+    queryFn: () => searchContent(debounced),
     enabled: open && debounced.trim().length > 0,
   });
 
@@ -85,6 +91,38 @@ export function CommandPalette() {
                   <CommandItem key={r.id} value={`page-${r.id}`} onSelect={() => go(`/${r.id}`)}>
                     <PageIcon icon={r.icon} />
                     <span className="truncate">{r.title || "Sin título"}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {hasQuery && contentResults.length > 0 && (
+              <CommandGroup heading="En el contenido">
+                {contentResults.map((r) => (
+                  <CommandItem
+                    key={`c-${r.id}`}
+                    value={`content-${r.id}`}
+                    onSelect={() => go(`/${r.id}`)}
+                    className="items-start"
+                  >
+                    <PageIcon icon={r.icon} />
+                    <span className="flex min-w-0 flex-col">
+                      <span className="truncate">{r.title || "Sin título"}</span>
+                      <span className="text-muted-foreground truncate text-xs">
+                        {splitHighlights(r.snippet).map((seg, i) =>
+                          seg.mark ? (
+                            <mark
+                              key={i}
+                              className="bg-highlight text-highlight-foreground rounded-sm"
+                            >
+                              {seg.text}
+                            </mark>
+                          ) : (
+                            <span key={i}>{seg.text}</span>
+                          ),
+                        )}
+                      </span>
+                    </span>
                   </CommandItem>
                 ))}
               </CommandGroup>

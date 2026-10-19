@@ -1,4 +1,4 @@
-import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 // Tablas de Better Auth — sección 6.4 de la especificación.
 //
@@ -62,4 +62,33 @@ export const verification = pgTable("verification", {
   expiresAt: timestamp("expires_at", tz).notNull(),
   createdAt: timestamp("created_at", tz).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", tz).notNull().defaultNow(),
+});
+
+// --- Plugins (6.4): passkey (AU-005) y two_factor (AU-006) --------------------
+// Nombres de propiedad JS = nombres de campo que espera Better Auth; columnas en
+// snake_case. Adelantados a la Fase 1 por seguridad (DEC-013).
+
+export const twoFactor = pgTable("two_factor", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  secret: text("secret").notNull(),
+  backupCodes: text("backup_codes").notNull(),
+});
+
+export const passkey = pgTable("passkey", {
+  id: text("id").primaryKey(),
+  name: text("name"),
+  publicKey: text("public_key").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  credentialID: text("credential_id").notNull(),
+  counter: integer("counter").notNull(),
+  deviceType: text("device_type").notNull(),
+  backedUp: boolean("backed_up").notNull(),
+  transports: text("transports"),
+  aaguid: text("aaguid"),
+  createdAt: timestamp("created_at", tz).notNull().defaultNow(),
 });

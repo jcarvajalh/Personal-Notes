@@ -155,3 +155,23 @@ Los tokens viven en un único lugar (`src/app/globals.css`): marca (`--brand*`),
 resaltado de búsqueda (`--highlight*`) y medidas de layout (`--sidebar-width`,
 `--content-max-width`, `--topbar-height`), además de la tipografía (DEC-012). El acento
 de marca es un índigo propio (no la paleta de Notion).
+
+## DEC-020 · 2026-10-19 · Passkeys: paquete `@better-auth/passkey`; 2FA del núcleo
+
+En Better Auth 1.7.11 el plugin **passkey** no está en el núcleo; se publica aparte
+como **`@better-auth/passkey`** (misma versión). Se instala y se usa su plugin de
+servidor (`.`) y de cliente (`./client`). El 2FA TOTP (`two-factor`) sí está en el
+núcleo (`better-auth/plugins/two-factor`). Ambas tablas (`two_factor`, `passkey`,
+sección 6.4) se escriben a mano en `schema/auth.ts` (coherente con DEC-004) y se crean
+en la migración `0003`. El login salta a `/login/2fa` vía `onTwoFactorRedirect` del
+cliente (callback fuera de React → `window.location`). `/login/2fa` se añade a las
+rutas públicas del `proxy`.
+
+## DEC-021 · 2026-10-19 · Búsqueda full-text: headline sobre texto sin tildes
+
+SR-002 usa `search_vector` (tsvector español + `immutable_unaccent`). Para que el
+resaltado de `ts_headline` case con la consulta sin tildes, el headline se genera sobre
+`immutable_unaccent(content_text)` con `plainto_tsquery('spanish', immutable_unaccent(q))`.
+Consecuencia: el fragmento resaltado se muestra sin tildes (compromiso cosmético menor)
+a cambio de resaltado consistente con o sin tildes. Los marcadores `[[h]]…[[/h]]` se
+convierten a `<mark>` en el cliente (sin inyectar HTML, §8.2).

@@ -4,7 +4,14 @@ import { NextResponse, type NextRequest } from "next/server";
 // AU-004: todas las rutas exigen sesión excepto /login, /setup, /p/*,
 // /api/health, /api/cron/* (con secreto), /api/v1/* (con token) y /api/auth/*.
 const PUBLIC_PATHS = new Set(["/login", "/setup", "/p"]);
-const PUBLIC_PREFIXES = ["/p/", "/api/health", "/api/cron", "/api/v1", "/api/auth"];
+const PUBLIC_PREFIXES = [
+  "/login/", // paso de verificación 2FA (/login/2fa)
+  "/p/",
+  "/api/health",
+  "/api/cron",
+  "/api/v1",
+  "/api/auth",
+];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

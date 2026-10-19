@@ -2,9 +2,20 @@ import { betterAuth } from "better-auth";
 import { APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
+import { twoFactor } from "better-auth/plugins/two-factor";
+import { passkey } from "@better-auth/passkey";
 
 import { db } from "./db";
-import { account, session, user, userSettings, verification, workspaces } from "./db/schema";
+import {
+  account,
+  passkey as passkeyTable,
+  session,
+  twoFactor as twoFactorTable,
+  user,
+  userSettings,
+  verification,
+  workspaces,
+} from "./db/schema";
 import { uuidv7 } from "@/lib/ids";
 
 const ownerEmail = process.env.OWNER_EMAIL?.trim().toLowerCase();
@@ -13,7 +24,14 @@ export const auth = betterAuth({
   appName: "Notion personal",
   database: drizzleAdapter(db, {
     provider: "pg",
-    schema: { user, session, account, verification },
+    schema: {
+      user,
+      session,
+      account,
+      verification,
+      twoFactor: twoFactorTable,
+      passkey: passkeyTable,
+    },
   }),
   emailAndPassword: {
     enabled: true,
@@ -62,8 +80,13 @@ export const auth = betterAuth({
       },
     },
   },
-  // nextCookies debe ir al final para que las Server Actions escriban cookies.
-  plugins: [nextCookies()],
+  // AU-006 (2FA TOTP) y AU-005 (passkeys). nextCookies debe ir al final para que
+  // las Server Actions escriban cookies.
+  plugins: [
+    twoFactor({ issuer: "Notion personal" }),
+    passkey({ rpName: "Notion personal" }),
+    nextCookies(),
+  ],
 });
 
 export type Session = typeof auth.$Infer.Session;

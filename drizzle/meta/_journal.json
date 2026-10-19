@@ -22,6 +22,13 @@
       "when": 1792377842730,
       "tag": "0002_curious_toxin",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792386325985,
+      "tag": "0003_lovely_karen_page",
+      "breakpoints": true
     }
   ]
 }

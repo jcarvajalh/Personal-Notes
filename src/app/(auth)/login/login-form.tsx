@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { Fingerprint } from "lucide-react";
+
 import { signIn } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 
@@ -21,7 +23,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
     setError(null);
     setLoading(true);
 
-    const { error: signInError } = await signIn.email({ email, password });
+    const { data, error: signInError } = await signIn.email({ email, password });
 
     if (signInError) {
       // AU-002: mensaje de error genérico.
@@ -30,6 +32,22 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
       return;
     }
 
+    // AU-006: si el usuario tiene 2FA, el cliente redirige a /login/2fa.
+    if (data && "twoFactorRedirect" in data && data.twoFactorRedirect) {
+      return;
+    }
+
+    router.push(redirectTo);
+    router.refresh();
+  }
+
+  async function handlePasskey() {
+    setError(null);
+    const res = await signIn.passkey();
+    if (res?.error) {
+      setError("No se pudo iniciar sesión con la passkey.");
+      return;
+    }
     router.push(redirectTo);
     router.refresh();
   }
@@ -70,6 +88,15 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
 
       <Button type="submit" disabled={loading}>
         {loading ? "Entrando…" : "Iniciar sesión"}
+      </Button>
+
+      <div className="text-muted-foreground flex items-center gap-3 text-xs">
+        <span className="bg-border h-px flex-1" />o<span className="bg-border h-px flex-1" />
+      </div>
+
+      <Button type="button" variant="outline" onClick={handlePasskey}>
+        <Fingerprint className="size-4" />
+        Entrar con passkey
       </Button>
     </form>
   );

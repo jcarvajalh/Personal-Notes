@@ -5,6 +5,7 @@ import { and, asc, desc, eq, inArray, isNull, isNotNull, sql } from "drizzle-orm
 import { db } from "@/server/db";
 import { pages } from "@/server/db/schema";
 import type { PageIcon } from "@/lib/validators/pages";
+import { HL_END, HL_START } from "@/lib/search";
 
 export interface SidebarNode {
   id: string;
@@ -278,6 +279,61 @@ export async function searchPagesByTitle(
     id: r.id,
     title: r.title,
     icon: (r.icon as PageIcon | null) ?? null,
+  }));
+}
+
+export interface FullTextMatch {
+  id: string;
+  title: string;
+  icon: PageIcon | null;
+  snippet: string;
+}
+
+/**
+ * Búsqueda full-text (SR-002): tsvector en español con unaccent (tildes o sin
+ * ellas), ranking por relevancia y fragmentos resaltados con ts_headline.
+ */
+export async function searchFullText(
+  workspaceId: string,
+  query: string,
+  limit = 20,
+): Promise<FullTextMatch[]> {
+  const q = query.trim();
+  if (q.length === 0) return [];
+
+  const rows = await db.execute<{
+    id: string;
+    title: string;
+    icon: PageIcon | null;
+    snippet: string;
+  }>(sql`
+    with q as (
+      select plainto_tsquery('spanish', immutable_unaccent(${q})) as query
+    )
+    select
+      p.id,
+      p.title,
+      p.icon,
+      ts_headline(
+        'spanish',
+        immutable_unaccent(p.content_text),
+        q.query,
+        ${"StartSel=" + HL_START + ",StopSel=" + HL_END + ",MaxFragments=1,MaxWords=18,MinWords=4,ShortWord=2"}
+      ) as snippet
+    from ${pages} p, q
+    where p.workspace_id = ${workspaceId}
+      and p.deleted_at is null
+      and p.database_id is null
+      and p.search_vector @@ q.query
+    order by ts_rank(p.search_vector, q.query) desc
+    limit ${limit}
+  `);
+
+  return rows.rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    icon: (r.icon as PageIcon | null) ?? null,
+    snippet: r.snippet ?? "",
   }));
 }
 

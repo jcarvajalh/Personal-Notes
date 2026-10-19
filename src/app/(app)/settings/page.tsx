@@ -4,7 +4,7 @@ import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
 import { useMounted } from "@/hooks/use-mounted";
-import { cn } from "@/lib/utils";
+import { SecuritySettings } from "@/components/settings/security-settings";
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -30,7 +30,6 @@ export default function SettingsPage() {
               variant={mounted && theme === o.value ? "default" : "outline"}
               size="sm"
               onClick={() => setTheme(o.value)}
-              className={cn()}
             >
               {o.label}
             </Button>
@@ -39,10 +38,8 @@ export default function SettingsPage() {
       </section>
 
       <section>
-        <h2 className="mb-1 text-base font-medium">Seguridad</h2>
-        <p className="text-muted-foreground text-sm">
-          Passkeys y verificación en dos pasos (2FA) se activarán en el bloque 1C.
-        </p>
+        <h2 className="mb-3 text-base font-medium">Seguridad (SE-006)</h2>
+        <SecuritySettings />
       </section>
     </div>
   );
