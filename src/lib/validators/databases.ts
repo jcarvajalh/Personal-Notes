@@ -1,7 +1,15 @@
 import { z } from "zod";
 
-// Tipos de propiedad que el usuario puede crear en el Sub-bloque 1.
-export const creatablePropertyType = z.enum(["text", "number", "checkbox", "select", "date"]);
+// Tipos de propiedad que el usuario puede crear (editables + automáticas DB-004).
+export const creatablePropertyType = z.enum([
+  "text",
+  "number",
+  "checkbox",
+  "select",
+  "date",
+  "created_time",
+  "last_edited_time",
+]);
 
 // Tipos de vista (el esquema soporta todos; la UI irá habilitándolos por fases).
 export const viewTypeSchema = z.enum([

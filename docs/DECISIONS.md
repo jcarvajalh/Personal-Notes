@@ -309,3 +309,27 @@ rebote 300 ms, y popovers de Filtros/Ordenar/Agrupar. Los cambios se persisten v
 (`views.tsx`, `table-view.tsx`) consumen `applyView` antes de renderizar, de modo que
 filtro/orden/búsqueda son consistentes en Tabla, Tablero, Lista, Galería, Feed, etc.
 Pendiente: cálculos de pie de columna (DB-043) y filtros relativos a fecha/usuario (DB-052).
+
+## DEC-029 · 2026-10-19 · DB-004 · Propiedades automáticas (created_time / last_edited_time)
+
+Completa DB-004 con las dos propiedades automáticas de tiempo. **Sin migración**: el enum
+`property_type` ya incluye `created_time`/`last_edited_time` y la página tiene
+`created_at`/`updated_at`. Al ser app de un solo usuario, `created_by`/`last_edited_by` se
+omiten (siempre serían el dueño; ni están en el enum).
+
+Su valor **no vive en `pages.properties`**: se deriva de los timestamps de la fila
+(`created_time` ← `pages.created_at`, `last_edited_time` ← `pages.updated_at`). Para ello:
+
+- `getDatabaseRows` añade `createdAt`/`updatedAt` (ISO) a `DbRow`.
+- `rawValue(row, prop)` (exportada en `view-config.ts`) centraliza la resolución del valor
+  de cualquier propiedad (título, automáticas, resto) y la consumen todas las vistas, las
+  celdas, el filtrado, el orden y la agrupación.
+- Helpers `isDateLike` + `dateKey` hacen que filtros/orden/agrupación traten las automáticas
+  como fecha (operadores de fecha; `is` compara por porción YYYY-MM-DD).
+- `AUTOMATIC_PROPERTY_TYPES`/`isAutomaticType` y `PROPERTY_TYPE_LABELS` en `types.ts`;
+  `defaultConfigFor` → `{ include_time: true }`.
+
+Son **de solo lectura**: la celda (`cells.tsx`) y `PropertyValue` las muestran con
+`formatDateTime` (fecha + hora si `include_time`), sin edición. Se pueden añadir desde el
+menú "+" de la tabla y pasan por `creatablePropertyType`. Tests en
+`tests/unit/view-config.test.ts`.

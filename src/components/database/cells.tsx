@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SELECT_COLORS, type DateValue, type SelectOption } from "@/lib/database/types";
-import { CHIP } from "@/components/database/value-display";
+import { CHIP, PropertyValue } from "@/components/database/value-display";
 import type { DbProperty } from "@/server/queries/databases";
 
 // Las celdas de texto/número/título usan inputs NO controlados (`defaultValue`
@@ -225,6 +225,14 @@ export function ValueCell({
           onCommit={onCommit}
           onConfigChange={onConfigChange}
         />
+      );
+    case "created_time":
+    case "last_edited_time":
+      // DB-004: automáticas, de solo lectura.
+      return (
+        <div className="flex h-full items-center px-2 py-1">
+          <PropertyValue property={property} value={value} className="truncate text-sm" />
+        </div>
       );
     default:
       return <span className="text-muted-foreground px-2 py-1 text-xs">No editable aún</span>;

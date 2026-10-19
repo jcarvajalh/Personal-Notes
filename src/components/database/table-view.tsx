@@ -14,18 +14,27 @@ import { cn } from "@/lib/utils";
 import { TitleCell, ValueCell } from "@/components/database/cells";
 import { CHIP } from "@/components/database/value-display";
 import { useDatabaseMutations, useDatabaseRows } from "@/hooks/use-database";
-import { applyView, groupRows, type RowGroup, type ViewConfig } from "@/lib/database/view-config";
+import {
+  applyView,
+  groupRows,
+  rawValue,
+  type RowGroup,
+  type ViewConfig,
+} from "@/lib/database/view-config";
+import { PROPERTY_TYPE_LABELS } from "@/lib/database/types";
 import type { DatabaseBundle, DbProperty, DbRow, DbView } from "@/server/queries/databases";
 
-const TYPE_LABELS: Record<string, string> = {
-  text: "Texto",
-  number: "Número",
-  checkbox: "Casilla",
-  select: "Selección",
-  date: "Fecha",
-};
+const TYPE_LABELS = PROPERTY_TYPE_LABELS;
 
-const ADDABLE_TYPES = ["text", "number", "checkbox", "select", "date"] as const;
+const ADDABLE_TYPES = [
+  "text",
+  "number",
+  "checkbox",
+  "select",
+  "date",
+  "created_time",
+  "last_edited_time",
+] as const;
 
 interface TableViewProps {
   pageId: string;
@@ -57,7 +66,7 @@ export function TableView({ pageId, bundle, initialRows, view }: TableViewProps)
           ) : (
             <ValueCell
               property={p}
-              value={row.properties[p.id]}
+              value={rawValue(row, p)}
               onCommit={(value) =>
                 m.updateValue.mutate({ pageId: row.id, propertyId: p.id, value })
               }

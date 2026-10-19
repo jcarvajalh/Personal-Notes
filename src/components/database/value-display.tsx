@@ -37,6 +37,16 @@ export function formatDate(value: DateValue): string {
   return d.toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" });
 }
 
+/** DB-004: formatea un timestamp ISO (propiedades automáticas) con hora opcional. */
+export function formatDateTime(iso: string, includeTime = true): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const date = d.toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" });
+  if (!includeTime) return date;
+  const time = d.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
+  return `${date}, ${time}`;
+}
+
 /** Representación de solo lectura del valor de una propiedad (tarjetas y listas). */
 export function PropertyValue({
   property,
@@ -60,6 +70,13 @@ export function PropertyValue({
       return value === true ? <Check className={cn("size-4", className)} /> : null;
     case "date":
       return <span className={className}>{formatDate(value as DateValue)}</span>;
+    case "created_time":
+    case "last_edited_time":
+      return (
+        <span className={cn("text-muted-foreground", className)}>
+          {formatDateTime(String(value), property.config.include_time !== false)}
+        </span>
+      );
     case "select": {
       const options = (property.config.options as SelectOption[] | undefined) ?? [];
       const opt = options.find((o) => o.id === value);

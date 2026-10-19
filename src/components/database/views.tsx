@@ -20,7 +20,7 @@ import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CHIP, formatNumber, PropertyValue } from "@/components/database/value-display";
 import { useDatabaseMutations, useDatabaseRows } from "@/hooks/use-database";
-import { applyView, type ViewConfig } from "@/lib/database/view-config";
+import { applyView, rawValue, type ViewConfig } from "@/lib/database/view-config";
 import type { DateValue, NumberConfig, SelectOption } from "@/lib/database/types";
 import type { DatabaseBundle, DbProperty, DbRow, DbView } from "@/server/queries/databases";
 
@@ -74,7 +74,7 @@ export function ListView(props: ViewProps) {
                 <PropertyValue
                   key={p.id}
                   property={p}
-                  value={r.properties[p.id]}
+                  value={rawValue(r, p)}
                   className="text-muted-foreground text-xs"
                 />
               ))}
@@ -107,7 +107,7 @@ export function GalleryView(props: ViewProps) {
                 <PropertyValue
                   key={p.id}
                   property={p}
-                  value={r.properties[p.id]}
+                  value={rawValue(r, p)}
                   className="text-muted-foreground text-xs"
                 />
               ))}
@@ -138,7 +138,7 @@ export function FeedView(props: ViewProps) {
             {otherProps.map((p) => (
               <span key={p.id} className="flex items-center gap-1 text-xs">
                 <span className="text-muted-foreground">{p.name}:</span>
-                <PropertyValue property={p} value={r.properties[p.id]} />
+                <PropertyValue property={p} value={rawValue(r, p)} />
               </span>
             ))}
           </div>
@@ -267,7 +267,7 @@ function BoardCard({ row, cardProps }: { row: DbRow; cardProps: DbProperty[] }) 
           <PropertyValue
             key={p.id}
             property={p}
-            value={row.properties[p.id]}
+            value={rawValue(row, p)}
             className="text-muted-foreground text-xs"
           />
         ))}

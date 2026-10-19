@@ -46,6 +46,29 @@ export interface DateValue {
 export const EDITABLE_PROPERTY_TYPES = ["text", "number", "checkbox", "select", "date"] as const;
 export type EditablePropertyType = (typeof EDITABLE_PROPERTY_TYPES)[number];
 
+/**
+ * DB-004: propiedades automáticas (de solo lectura). Su valor no vive en
+ * `pages.properties`, sino que se deriva de las columnas de la página:
+ * `created_time` ← `created_at`, `last_edited_time` ← `updated_at`.
+ */
+export const AUTOMATIC_PROPERTY_TYPES = ["created_time", "last_edited_time"] as const;
+export type AutomaticPropertyType = (typeof AUTOMATIC_PROPERTY_TYPES)[number];
+
+export function isAutomaticType(type: string): type is AutomaticPropertyType {
+  return (AUTOMATIC_PROPERTY_TYPES as readonly string[]).includes(type);
+}
+
+/** Etiquetas en español de los tipos de propiedad creables por el usuario. */
+export const PROPERTY_TYPE_LABELS: Record<string, string> = {
+  text: "Texto",
+  number: "Número",
+  checkbox: "Casilla",
+  select: "Selección",
+  date: "Fecha",
+  created_time: "Fecha de creación",
+  last_edited_time: "Última edición",
+};
+
 /** Las ocho vistas ofrecidas al crear/añadir (orden del doc docs/vistas.docx). */
 export const OFFERED_VIEW_TYPES = [
   "table",
@@ -81,6 +104,9 @@ export function defaultConfigFor(type: string): Record<string, unknown> {
       return { format: "number" };
     case "date":
       return { include_time: false };
+    case "created_time":
+    case "last_edited_time":
+      return { include_time: true };
     default:
       return {};
   }

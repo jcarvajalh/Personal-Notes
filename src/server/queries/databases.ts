@@ -44,6 +44,9 @@ export interface DbRow {
   icon: PageIcon | null;
   properties: Record<string, unknown>;
   position: string;
+  /** DB-004: timestamps de la página, origen de las propiedades automáticas. */
+  createdAt: string;
+  updatedAt: string;
 }
 
 /** Carga la BD (metadatos, propiedades y vistas) a partir de su página contenedora. */
@@ -107,6 +110,8 @@ export async function getDatabaseRows(workspaceId: string, databaseId: string): 
       icon: pages.icon,
       properties: pages.properties,
       position: pages.position,
+      createdAt: pages.createdAt,
+      updatedAt: pages.updatedAt,
     })
     .from(pages)
     .where(
@@ -123,5 +128,7 @@ export async function getDatabaseRows(workspaceId: string, databaseId: string): 
     icon: (r.icon as PageIcon | null) ?? null,
     properties: (r.properties as Record<string, unknown>) ?? {},
     position: r.position,
+    createdAt: r.createdAt.toISOString(),
+    updatedAt: r.updatedAt.toISOString(),
   }));
 }

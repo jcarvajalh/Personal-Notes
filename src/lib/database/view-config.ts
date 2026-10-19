@@ -1,5 +1,5 @@
 // Filtros, orden, búsqueda y agrupación de vistas (6.11, subconjunto práctico).
-import type { DateValue, SelectOption } from "@/lib/database/types";
+import { isAutomaticType, type DateValue, type SelectOption } from "@/lib/database/types";
 import type { DbProperty, DbRow } from "@/server/queries/databases";
 
 export interface FilterRule {
@@ -55,17 +55,42 @@ export const OPERATORS: Record<string, { value: string; label: string; unary?: b
   ],
 };
 
+/** Tipos que se comportan como fecha (fecha editable + automáticas DB-004). */
+export function isDateLike(type: string): boolean {
+  return type === "date" || isAutomaticType(type);
+}
+
 /** Normaliza el tipo de propiedad al grupo de operadores que le aplica. */
 export function operatorGroup(type: string): keyof typeof OPERATORS {
   if (type === "number") return "number";
   if (type === "select" || type === "status") return "select";
   if (type === "checkbox") return "checkbox";
-  if (type === "date") return "date";
+  if (isDateLike(type)) return "date";
   return "text";
 }
 
-function rawValue(row: DbRow, prop: DbProperty): unknown {
-  return prop.type === "title" ? row.title : row.properties[prop.id];
+/**
+ * Valor crudo de una propiedad en una fila. El título vive en `row.title`; las
+ * propiedades automáticas (DB-004) en los timestamps de la página; el resto en
+ * `row.properties`.
+ */
+export function rawValue(row: DbRow, prop: DbProperty): unknown {
+  if (prop.type === "title") return row.title;
+  if (prop.type === "created_time") return row.createdAt;
+  if (prop.type === "last_edited_time") return row.updatedAt;
+  return row.properties[prop.id];
+}
+
+/**
+ * Clave de fecha comparable (YYYY-MM-DD…). Acepta tanto `DateValue` (fecha
+ * editable) como una cadena ISO (propiedad automática).
+ */
+function dateKey(v: unknown): string {
+  if (typeof v === "string") return v;
+  if (v && typeof v === "object" && "start" in v) {
+    return String((v as DateValue).start ?? "");
+  }
+  return "";
 }
 
 function asText(v: unknown): string {
@@ -95,10 +120,10 @@ function evaluate(row: DbRow, prop: DbProperty, rule: FilterRule): boolean {
     case "does_not_contain":
       return !asText(v).toLowerCase().includes(asText(rule.value).toLowerCase());
     case "is":
-      if (prop.type === "date") return (v as DateValue | undefined)?.start === rule.value;
+      if (isDateLike(prop.type)) return dateKey(v).slice(0, 10) === asText(rule.value);
       return asText(v) === asText(rule.value);
     case "is_not":
-      if (prop.type === "date") return (v as DateValue | undefined)?.start !== rule.value;
+      if (isDateLike(prop.type)) return dateKey(v).slice(0, 10) !== asText(rule.value);
       return asText(v) !== asText(rule.value);
     case "eq":
       return typeof v === "number" && v === Number(rule.value);
@@ -112,14 +137,14 @@ function evaluate(row: DbRow, prop: DbProperty, rule: FilterRule): boolean {
       return typeof v === "number" && v >= Number(rule.value);
     case "lte":
       return typeof v === "number" && v <= Number(rule.value);
-    case "before":
-      return (
-        Boolean((v as DateValue | undefined)?.start) && (v as DateValue).start < asText(rule.value)
-      );
-    case "after":
-      return (
-        Boolean((v as DateValue | undefined)?.start) && (v as DateValue).start > asText(rule.value)
-      );
+    case "before": {
+      const k = dateKey(v);
+      return k !== "" && k.slice(0, 10) < asText(rule.value);
+    }
+    case "after": {
+      const k = dateKey(v);
+      return k !== "" && k.slice(0, 10) > asText(rule.value);
+    }
     default:
       return true;
   }
@@ -138,9 +163,9 @@ function matchesSearch(row: DbRow, properties: DbProperty[], search: string): bo
 
 function compare(a: unknown, b: unknown, prop: DbProperty): number {
   if (prop.type === "number") return (Number(a) || 0) - (Number(b) || 0);
-  if (prop.type === "date") {
-    const av = (a as DateValue | undefined)?.start ?? "";
-    const bv = (b as DateValue | undefined)?.start ?? "";
+  if (isDateLike(prop.type)) {
+    const av = dateKey(a);
+    const bv = dateKey(b);
     return av < bv ? -1 : av > bv ? 1 : 0;
   }
   if (prop.type === "checkbox") return (a === true ? 1 : 0) - (b === true ? 1 : 0);
@@ -196,7 +221,7 @@ export function groupRows(rows: DbRow[], property: DbProperty): RowGroup[] {
   }
 
   for (const row of rows) {
-    const v = property.type === "title" ? row.title : row.properties[property.id];
+    const v = rawValue(row, property);
     if (property.type === "select" || property.type === "status") {
       const key = typeof v === "string" && v ? v : "__none__";
       const opt = options.find((o) => o.id === v);
@@ -205,7 +230,7 @@ export function groupRows(rows: DbRow[], property: DbProperty): RowGroup[] {
       const key = v === true ? "true" : "false";
       ensure(key, v === true ? "Marcado" : "Sin marcar").rows.push(row);
     } else {
-      const label = asText(property.type === "date" ? (v as DateValue | undefined)?.start : v);
+      const label = isDateLike(property.type) ? dateKey(v).slice(0, 10) : asText(v);
       const key = label || "__none__";
       ensure(key, label || "Sin valor").rows.push(row);
     }

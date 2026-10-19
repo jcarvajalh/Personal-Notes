@@ -125,7 +125,7 @@ IDs y detalles en `docs/spec/05-func-editor-paginas.md`, `06-func-bases-de-datos
 | DB-001 | Crear base de datos                         | P0   | hecho     |
 | DB-002 | Gestión de propiedades                      | P0   | hecho     |
 | DB-003 | Tipos básicos                               | P0   | hecho     |
-| DB-004 | Propiedades automáticas                     | P0   | pendiente |
+| DB-004 | Propiedades automáticas                     | P0   | hecho     |
 | DB-005 | Relación                                    | P1   | pendiente |
 | DB-006 | Rollup                                      | P1   | pendiente |
 | DB-007 | Fórmula                                     | P1   | pendiente |
