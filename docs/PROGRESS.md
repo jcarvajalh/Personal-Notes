@@ -15,59 +15,59 @@ IDs y detalles en `docs/spec/05-func-editor-paginas.md`, `06-func-bases-de-datos
 
 ## 7.1 Autenticación y seguridad (AU)
 
-| ID     | Funcionalidad            | Prio | Estado |
-| ------ | ------------------------ | ---- | ------ |
-| AU-001 | Setup inicial            | P0   | hecho  |
-| AU-002 | Login email + contraseña | P0   | hecho  |
-| AU-003 | Registro bloqueado       | P0   | hecho  |
-| AU-004 | Middleware de protección | P0   | hecho  |
-| AU-005 | Passkeys                 | P1   | hecho  |
-| AU-006 | 2FA TOTP                 | P1   | hecho  |
-| AU-007 | Sesiones                 | P1   | hecho  |
-| AU-008 | Bloqueo por inactividad  | P2   | hecho  |
-| AU-009 | Páginas cifradas         | P2   | hecho  |
+| ID     | Funcionalidad            | Prio | Estado    |
+| ------ | ------------------------ | ---- | --------- |
+| AU-001 | Setup inicial            | P0   | hecho     |
+| AU-002 | Login email + contraseña | P0   | hecho     |
+| AU-003 | Registro bloqueado       | P0   | hecho     |
+| AU-004 | Middleware de protección | P0   | hecho     |
+| AU-005 | Passkeys                 | P1   | hecho     |
+| AU-006 | 2FA TOTP                 | P1   | hecho     |
+| AU-007 | Sesiones                 | P1   | pendiente |
+| AU-008 | Bloqueo por inactividad  | P2   | pendiente |
+| AU-009 | Páginas cifradas         | P2   | pendiente |
 
 ## 7.2 Navegación, sidebar y layout (NV)
 
-| ID     | Funcionalidad                        | Prio | Estado |
-| ------ | ------------------------------------ | ---- | ------ |
-| NV-001 | Sidebar con árbol de páginas         | P0   | hecho  |
-| NV-002 | Crear página desde sidebar           | P0   | hecho  |
-| NV-003 | Arrastrar y soltar                   | P0   | hecho  |
-| NV-004 | Menú contextual de página            | P0   | hecho  |
-| NV-005 | Secciones del sidebar                | P0   | hecho  |
-| NV-006 | Sidebar redimensionable y colapsable | P0   | hecho  |
-| NV-007 | Breadcrumbs                          | P0   | hecho  |
-| NV-008 | Atrás / adelante                     | P1   | hecho  |
-| NV-009 | Recientes                            | P0   | hecho  |
-| NV-010 | Pestañas internas                    | P2   | hecho  |
-| NV-011 | Vista dividida                       | P2   | hecho  |
-| NV-012 | Responsive                           | P0   | hecho  |
-| NV-013 | Página de inicio                     | P1   | hecho  |
+| ID     | Funcionalidad                        | Prio | Estado    |
+| ------ | ------------------------------------ | ---- | --------- |
+| NV-001 | Sidebar con árbol de páginas         | P0   | hecho     |
+| NV-002 | Crear página desde sidebar           | P0   | hecho     |
+| NV-003 | Arrastrar y soltar                   | P0   | hecho     |
+| NV-004 | Menú contextual de página            | P0   | hecho     |
+| NV-005 | Secciones del sidebar                | P0   | hecho     |
+| NV-006 | Sidebar redimensionable y colapsable | P0   | hecho     |
+| NV-007 | Breadcrumbs                          | P0   | hecho     |
+| NV-008 | Atrás / adelante                     | P1   | pendiente |
+| NV-009 | Recientes                            | P0   | hecho     |
+| NV-010 | Pestañas internas                    | P2   | pendiente |
+| NV-011 | Vista dividida                       | P2   | pendiente |
+| NV-012 | Responsive                           | P0   | hecho     |
+| NV-013 | Página de inicio                     | P1   | pendiente |
 
 ## 7.3 Páginas (PG)
 
-| ID     | Funcionalidad                    | Prio | Estado |
-| ------ | -------------------------------- | ---- | ------ |
-| PG-001 | Título editable                  | P0   | hecho  |
-| PG-002 | Icono                            | P0   | hecho  |
-| PG-003 | Portada                          | P1   | hecho  |
-| PG-004 | Subpáginas                       | P0   | hecho  |
-| PG-005 | Opciones de estilo               | P1   | hecho  |
-| PG-006 | Bloquear página                  | P1   | hecho  |
-| PG-007 | Duplicar                         | P0   | hecho  |
-| PG-008 | Mover a                          | P0   | hecho  |
-| PG-009 | Archivar / Papelera / Restaurar  | P0   | hecho  |
-| PG-010 | Historial de versiones           | P1   | hecho  |
-| PG-011 | Versiones con nombre             | P1   | hecho  |
-| PG-012 | Copiar enlace                    | P0   | hecho  |
-| PG-013 | Índice flotante                  | P1   | hecho  |
-| PG-014 | Estadísticas de página           | P1   | hecho  |
-| PG-015 | Panel de backlinks               | P1   | hecho  |
-| PG-016 | Convertir página ↔ base de datos | P2   | hecho  |
-| PG-017 | Etiquetas transversales          | P2   | hecho  |
-| PG-018 | Modo enfoque                     | P1   | hecho  |
-| PG-019 | Actualizaciones / actividad      | P2   | hecho  |
+| ID     | Funcionalidad                    | Prio | Estado    |
+| ------ | -------------------------------- | ---- | --------- |
+| PG-001 | Título editable                  | P0   | hecho     |
+| PG-002 | Icono                            | P0   | hecho     |
+| PG-003 | Portada                          | P1   | pendiente |
+| PG-004 | Subpáginas                       | P0   | hecho     |
+| PG-005 | Opciones de estilo               | P1   | pendiente |
+| PG-006 | Bloquear página                  | P1   | pendiente |
+| PG-007 | Duplicar                         | P0   | hecho     |
+| PG-008 | Mover a                          | P0   | hecho     |
+| PG-009 | Archivar / Papelera / Restaurar  | P0   | hecho     |
+| PG-010 | Historial de versiones           | P1   | pendiente |
+| PG-011 | Versiones con nombre             | P1   | pendiente |
+| PG-012 | Copiar enlace                    | P0   | hecho     |
+| PG-013 | Índice flotante                  | P1   | pendiente |
+| PG-014 | Estadísticas de página           | P1   | pendiente |
+| PG-015 | Panel de backlinks               | P1   | pendiente |
+| PG-016 | Convertir página ↔ base de datos | P2   | pendiente |
+| PG-017 | Etiquetas transversales          | P2   | pendiente |
+| PG-018 | Modo enfoque                     | P1   | pendiente |
+| PG-019 | Actualizaciones / actividad      | P2   | pendiente |
 
 ## 7.4 Editor de bloques (ED)
 
@@ -78,19 +78,19 @@ IDs y detalles en `docs/spec/05-func-editor-paginas.md`, `06-func-bases-de-datos
 | ED-003 | Listas                                 | P0   | hecho     |
 | ED-004 | Toggle                                 | P0   | hecho     |
 | ED-005 | Cita                                   | P0   | hecho     |
-| ED-006 | Callout                                | P0   | pendiente |
-| ED-007 | Divisor                                | P0   | pendiente |
-| ED-008 | Código                                 | P0   | pendiente |
-| ED-009 | Tabla simple                           | P0   | pendiente |
-| ED-010 | Imagen                                 | P0   | pendiente |
+| ED-006 | Callout                                | P0   | hecho     |
+| ED-007 | Divisor                                | P0   | hecho     |
+| ED-008 | Código                                 | P0   | hecho     |
+| ED-009 | Tabla simple                           | P0   | hecho     |
+| ED-010 | Imagen                                 | P0   | hecho     |
 | ED-011 | Video / audio / archivo / PDF          | P1   | pendiente |
 | ED-012 | Marcador web                           | P1   | pendiente |
 | ED-013 | Embeds                                 | P1   | pendiente |
 | ED-014 | Ecuación en bloque                     | P1   | pendiente |
 | ED-015 | Ecuación en línea                      | P1   | pendiente |
 | ED-016 | Columnas                               | P1   | pendiente |
-| ED-017 | Enlace a página                        | P0   | pendiente |
-| ED-018 | Mención de página                      | P0   | pendiente |
+| ED-017 | Enlace a página                        | P0   | hecho     |
+| ED-018 | Mención de página                      | P0   | hecho     |
 | ED-019 | Mención de fecha                       | P1   | pendiente |
 | ED-020 | Tabla de contenidos                    | P1   | pendiente |
 | ED-021 | Breadcrumb                             | P2   | pendiente |
@@ -102,21 +102,21 @@ IDs y detalles en `docs/spec/05-func-editor-paginas.md`, `06-func-bases-de-datos
 | ED-027 | Bloque de consulta                     | P2   | pendiente |
 | ED-028 | Bloque flashcard                       | P2   | pendiente |
 | ED-029 | Bloque de progreso / checklist resumen | P2   | pendiente |
-| ED-030 | Menú "/"                               | P0   | pendiente |
-| ED-031 | Atajos Markdown                        | P0   | pendiente |
-| ED-032 | Formato de texto                       | P0   | pendiente |
-| ED-033 | Manija de bloque                       | P0   | pendiente |
-| ED-034 | Convertir en                           | P0   | pendiente |
-| ED-035 | Selección múltiple                     | P0   | pendiente |
-| ED-036 | Copiar / pegar inteligente             | P0   | pendiente |
-| ED-037 | Deshacer / rehacer                     | P0   | pendiente |
+| ED-030 | Menú "/"                               | P0   | hecho     |
+| ED-031 | Atajos Markdown                        | P0   | hecho     |
+| ED-032 | Formato de texto                       | P0   | hecho     |
+| ED-033 | Manija de bloque                       | P0   | hecho     |
+| ED-034 | Convertir en                           | P0   | hecho     |
+| ED-035 | Selección múltiple                     | P0   | hecho     |
+| ED-036 | Copiar / pegar inteligente             | P0   | hecho     |
+| ED-037 | Deshacer / rehacer                     | P0   | hecho     |
 | ED-038 | Buscar y reemplazar en página          | P1   | pendiente |
-| ED-039 | Autoguardado                           | P0   | pendiente |
+| ED-039 | Autoguardado                           | P0   | hecho     |
 | ED-040 | Comentarios                            | P1   | pendiente |
 | ED-041 | Emojis                                 | P1   | pendiente |
 | ED-042 | Plantillas de bloques                  | P2   | pendiente |
 | ED-043 | Contador de palabras en vivo           | P1   | pendiente |
-| ED-044 | Corrector ortográfico                  | P0   | pendiente |
+| ED-044 | Corrector ortográfico                  | P0   | hecho     |
 
 ## 7.5 Bases de datos (DB)
 
@@ -180,8 +180,8 @@ IDs y detalles en `docs/spec/05-func-editor-paginas.md`, `06-func-bases-de-datos
 
 | ID     | Funcionalidad               | Prio | Estado    |
 | ------ | --------------------------- | ---- | --------- |
-| SR-001 | Paleta de comandos          | P0   | pendiente |
-| SR-002 | Búsqueda full-text          | P0   | pendiente |
+| SR-001 | Paleta de comandos          | P0   | hecho     |
+| SR-002 | Búsqueda full-text          | P0   | hecho     |
 | SR-003 | Filtros de búsqueda         | P1   | pendiente |
 | SR-004 | Búsqueda semántica          | P2   | pendiente |
 | SR-005 | Búsqueda dentro de archivos | P2   | pendiente |
@@ -257,7 +257,7 @@ IDs y detalles en `docs/spec/05-func-editor-paginas.md`, `06-func-bases-de-datos
 
 | ID     | Funcionalidad                      | Prio | Estado    |
 | ------ | ---------------------------------- | ---- | --------- |
-| SE-001 | Tema claro / oscuro / sistema      | P0   | pendiente |
+| SE-001 | Tema claro / oscuro / sistema      | P0   | hecho     |
 | SE-002 | Color de acento                    | P1   | pendiente |
 | SE-003 | Atajos personalizables             | P2   | pendiente |
 | SE-004 | Preferencias regionales            | P1   | pendiente |
