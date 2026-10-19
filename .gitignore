@@ -1,0 +1,54 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# testing
+/coverage
+/test-results
+/playwright-report
+/.playwright
+
+# next.js
+/.next/
+/out/
+/build
+next-env.d.ts
+
+# production
+/dist
+
+# misc
+.DS_Store
+*.pem
+Thumbs.db
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# local env files — se ignoran todos excepto el ejemplo
+.env
+.env.*
+!.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+
+# turbo
+.turbo
+
+# drizzle (migraciones SÍ se versionan; artefactos locales no)
+/drizzle/meta/_journal_local.json
+
+# editor / OS
+.idea
+.vscode/*
+!.vscode/extensions.json
+*.swp
