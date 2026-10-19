@@ -76,6 +76,17 @@ transacción, y `/setup` solo se muestra si aún no existe ningún usuario.
 El desarrollo ocurre en la rama `develop`. `main` queda como rama estable y
 `production` se reservará para el despliegue en Vercel (rama de Neon `production`).
 
+## DEC-012 · 2026-10-19 · Tipografía: Inter + Cormorant Garamond e interletraje
+
+Fuente de UI **Inter** (sans) vía `next/font` (autohospedada; evita el salto de
+layout del `@import` y carga la misma familia que el import de Google Fonts pedido).
+**Cormorant Garamond** como serif disponible (pesos 300–700, normal/itálica) para la
+opción de fuente de página "serif" (6.5). Reglas base en `globals.css`: cuerpo/párrafos
+`letter-spacing: -0.02em`; títulos `h1–h6` `font-weight: 500` y `letter-spacing: -0.04em`.
+Los `<h1>` de las pantallas pasaron de `font-semibold` (600) a `font-medium` (500) para
+respetar la directiva. Ajusta/sustituye a Source Serif (mencionado en 9) por decisión de
+diseño del dueño. Mono sigue siendo Geist Mono (JetBrains Mono queda pendiente).
+
 ## DEC-011 · 2026-10-18 · Sin `cacheComponents`; `proxy.ts` en lugar de `middleware.ts`
 
 `create-next-app` activó `cacheComponents`/`partialPrefetching` (experimentales de

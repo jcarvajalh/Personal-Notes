@@ -8,6 +8,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -123,8 +124,20 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Cuerpo / párrafos: interletraje -2%. */
+    letter-spacing: -0.02em;
   }
   html {
     @apply font-sans;
+  }
+  /* Títulos: peso 500 e interletraje -4%. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 500;
+    letter-spacing: -0.04em;
   }
 }

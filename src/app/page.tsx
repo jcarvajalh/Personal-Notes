@@ -25,7 +25,7 @@ export default async function HomePage() {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-10">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Notion personal</h1>
+        <h1 className="text-2xl font-medium">Notion personal</h1>
         <LogoutButton />
       </header>
 
